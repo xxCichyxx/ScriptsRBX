@@ -1,4 +1,14 @@
+local function loadESP()
+    local ESP = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/murdermystery2/esp.txt'))()
+    return ESP
+end
+
+local function loadGetGun()
+    local GetSherifGun = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/murdermystery2/getgun.txt'))()
+    return GetSherifGun
+end
+
 return {
-    ESP = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/murdermystery2/esp.txt'))(),
-    GetSherifGun = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/murdermystery2/getgun.txt'))()
+    loadESP = loadESP,
+    loadGetGun = loadGetGun
 }
