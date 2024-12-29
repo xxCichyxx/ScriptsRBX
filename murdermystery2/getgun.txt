@@ -4,25 +4,33 @@ local function teleportToPlayer(object, player)
     local character = player.Character
     if character and character:FindFirstChild("HumanoidRootPart") then
         local rootPart = character.HumanoidRootPart
-        object.CFrame = rootPart.CFrame + Vector3.new(0, 2, 0)
+        if rootPart then
+            object.CFrame = rootPart.CFrame + Vector3.new(0, 2, 0)
+        else
+            warn("HumanoidRootPart not found for player " .. player.Name)
+        end
     end
 end
 
 local function processModelForGunDrop(model, player)
     local gunDrop = model:FindFirstChild("GunDrop")
-    if gunDrop and gunDrop:IsA("BasePart") and not processedGunDrops[gunDrop] then
-        processedGunDrops[gunDrop] = true
-        teleportToPlayer(gunDrop, player)
+    if gunDrop and gunDrop:IsA("BasePart") then
+        if not processedGunDrops[gunDrop] then
+            processedGunDrops[gunDrop] = true
+            teleportToPlayer(gunDrop, player)
+        end
     end
 end
 
 local function monitorWorkspaceForGunDrop(player)
+    -- Sprawdzenie już istniejących obiektów w workspace
     for _, child in pairs(workspace:GetChildren()) do
         if child:IsA("Model") then
             processModelForGunDrop(child, player)
         end
     end
 
+    -- Nasłuchujemy nowych obiektów dodawanych do workspace
     workspace.ChildAdded:Connect(function(child)
         if child:IsA("Model") then
             processModelForGunDrop(child, player)
