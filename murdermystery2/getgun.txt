@@ -1,0 +1,43 @@
+local processedGunDrops = {}
+
+local function teleportToPlayer(object, player)
+    local character = player.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local rootPart = character.HumanoidRootPart
+        object.CFrame = rootPart.CFrame + Vector3.new(0, 2, 0)
+    end
+end
+
+local function processModelForGunDrop(model, player)
+    local gunDrop = model:FindFirstChild("GunDrop")
+    if gunDrop and gunDrop:IsA("BasePart") and not processedGunDrops[gunDrop] then
+        processedGunDrops[gunDrop] = true
+        teleportToPlayer(gunDrop, player)
+    end
+end
+
+local function monitorWorkspaceForGunDrop(player)
+    for _, child in pairs(workspace:GetChildren()) do
+        if child:IsA("Model") then
+            processModelForGunDrop(child, player)
+        end
+    end
+
+    workspace.ChildAdded:Connect(function(child)
+        if child:IsA("Model") then
+            processModelForGunDrop(child, player)
+        end
+    end)
+
+    workspace.DescendantAdded:Connect(function(descendant)
+        if descendant.Name == "GunDrop" and descendant:IsA("BasePart") then
+            local parentModel = descendant.Parent
+            if parentModel and parentModel:IsA("Model") then
+                processModelForGunDrop(parentModel, player)
+            end
+        end
+    end)
+end
+
+local player = game.Players.LocalPlayer
+monitorWorkspaceForGunDrop(player)
