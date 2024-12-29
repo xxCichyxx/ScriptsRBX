@@ -1,17 +1,21 @@
 local processedGunDrops = {}
+local monitoringActive = false  -- Flaga monitorowania
+local stopMonitoringFunc = nil  -- Funkcja zatrzymująca nasłuch
 
+-- Funkcja teleportująca obiekt do gracza
 local function teleportToPlayer(object, player)
     local character = player.Character
     if character and character:FindFirstChild("HumanoidRootPart") then
         local rootPart = character.HumanoidRootPart
         if rootPart then
-            object.CFrame = rootPart.CFrame + Vector3.new(0, 2, 0)
+            object.CFrame = rootPart.CFrame + Vector3.new(0, 2, 0)  -- Ustawienie obiektu nad graczem
         else
             warn("HumanoidRootPart not found for player " .. player.Name)
         end
     end
 end
 
+-- Funkcja przetwarzająca model dla GunDrop
 local function processModelForGunDrop(model, player)
     local gunDrop = model:FindFirstChild("GunDrop")
     if gunDrop and gunDrop:IsA("BasePart") then
@@ -22,22 +26,33 @@ local function processModelForGunDrop(model, player)
     end
 end
 
+-- Funkcja monitorująca workspace pod kątem GunDrop
 local function monitorWorkspaceForGunDrop(player)
-    -- Sprawdzenie już istniejących obiektów w workspace
-    for _, child in pairs(workspace:GetChildren()) do
+    -- Nasłuchujemy nowych obiektów dodawanych do workspace
+    local function checkForGunDrop(child)
         if child:IsA("Model") then
             processModelForGunDrop(child, player)
         end
     end
 
-    -- Nasłuchujemy nowych obiektów dodawanych do workspace
-    workspace.ChildAdded:Connect(function(child)
-        if child:IsA("Model") then
-            processModelForGunDrop(child, player)
+    -- Sprawdzamy już istniejące obiekty w workspace
+    for _, child in pairs(workspace:GetChildren()) do
+        checkForGunDrop(child)
+    end
+
+    -- Nasłuchujemy dodawanie nowych obiektów
+    local childAddedConnection
+    childAddedConnection = workspace.ChildAdded:Connect(function(child)
+        if not monitoringActive then
+            childAddedConnection:Disconnect()  -- Zatrzymujemy nasłuch jeśli monitoring nie jest aktywny
+        else
+            checkForGunDrop(child)
         end
     end)
 
-    workspace.DescendantAdded:Connect(function(descendant)
+    -- Nasłuchujemy dodawanie nowych potomków
+    local descendantAddedConnection
+    descendantAddedConnection = workspace.DescendantAdded:Connect(function(descendant)
         if descendant.Name == "GunDrop" and descendant:IsA("BasePart") then
             local parentModel = descendant.Parent
             if parentModel and parentModel:IsA("Model") then
@@ -45,7 +60,35 @@ local function monitorWorkspaceForGunDrop(player)
             end
         end
     end)
+
+    -- Zwracamy funkcje zatrzymujące nasłuch
+    return function()
+        childAddedConnection:Disconnect()
+        descendantAddedConnection:Disconnect()
+    end
 end
 
-local player = game.Players.LocalPlayer
-monitorWorkspaceForGunDrop(player)
+-- Funkcja startująca monitorowanie
+local function startMonitoring()
+    if monitoringActive then return end  -- Sprawdzamy, czy monitorowanie już działa
+    monitoringActive = true
+    local player = game.Players.LocalPlayer
+    stopMonitoringFunc = monitorWorkspaceForGunDrop(player)  -- Rozpoczynamy monitorowanie
+end
+
+-- Funkcja zatrzymująca monitorowanie
+local function stopMonitoring()
+    if not monitoringActive then return end  -- Sprawdzamy, czy monitoring jest już wyłączony
+    monitoringActive = false
+    if stopMonitoringFunc then
+        stopMonitoringFunc()  -- Zatrzymujemy nasłuch
+    end
+    -- Resetujemy przetworzone obiekty GunDrop
+    processedGunDrops = {}
+end
+
+-- Zwracamy funkcje startMonitoring i stopMonitoring
+return {
+    startMonitoring = startMonitoring,
+    stopMonitoring = stopMonitoring
+}
