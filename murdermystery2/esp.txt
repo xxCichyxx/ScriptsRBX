@@ -1,0 +1,97 @@
+local Players = game:GetService("Players")
+local processedPlayers = {}
+local isESPEnabled = false
+local monitoringActive = false
+local targetGameId = 142823291
+local function ensureHighlight(character, color)
+    if not character or not character:IsA("Model") then return end
+    local highlight = character:FindFirstChildOfClass("Highlight")
+    if not highlight then
+        highlight = Instance.new("Highlight")
+        highlight.Parent = character
+        highlight.Adornee = character
+    end
+    highlight.FillColor = color
+    highlight.OutlineColor = color
+    highlight.OutlineTransparency = 0
+    highlight.FillTransparency = 0.4
+end
+local function removeHighlight(character)
+    if not character or not character:IsA("Model") then return end
+    local highlight = character:FindFirstChildOfClass("Highlight")
+    if highlight then highlight:Destroy() end
+end
+local function monitorHighlight(player)
+    if not isESPEnabled or game.PlaceId ~= targetGameId then return end
+    if player.Character then
+        local character = player.Character
+        local highlight = character:FindFirstChildOfClass("Highlight")
+        if not highlight then
+            ensureHighlight(character, Color3.fromRGB(0, 255, 0))
+        end
+    end
+end
+local function monitorColors(player, character)
+    if not player or not character then return end
+    if not isESPEnabled or game.PlaceId ~= targetGameId then return end
+    local backpack = player.Backpack
+    local hasKnife = backpack:FindFirstChild("Knife") or character:FindFirstChild("Knife")
+    local hasGun = backpack:FindFirstChild("Gun") or character:FindFirstChild("Gun")
+    if hasKnife then
+        ensureHighlight(character, Color3.fromRGB(255, 0, 0))
+        processedPlayers[player] = "Murderer"
+    elseif hasGun then
+        ensureHighlight(character, Color3.fromRGB(0, 0, 255))
+        processedPlayers[player] = "Sheriff"
+    else
+        ensureHighlight(character, Color3.fromRGB(0, 255, 0))
+        processedPlayers[player] = "Innocent"
+    end
+end
+local function monitorPlayers()
+    if not isESPEnabled or game.PlaceId ~= targetGameId then return end
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Character then
+            local character = player.Character
+            monitorHighlight(player)
+            monitorColors(player, character)
+        end
+        player.CharacterAdded:Connect(function(character)
+            monitorHighlight(player)
+            monitorColors(player, character)
+        end)
+    end
+end
+local function continuousMonitorPlayers()
+    monitoringActive = true
+    while monitoringActive do
+        if not isESPEnabled or game.PlaceId ~= targetGameId then
+            task.wait(1)
+            continue
+        end
+        monitorPlayers()
+        for _, player in ipairs(Players:GetPlayers()) do
+            if not player.Character and processedPlayers[player] then
+                processedPlayers[player] = nil
+            end
+        end
+        task.wait(2)
+    end
+end
+local function startMonitoring()
+    isESPEnabled = true
+    continuousMonitorPlayers()
+end
+local function stopMonitoring()
+    isESPEnabled = false
+    monitoringActive = false
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Character then
+            removeHighlight(player.Character)
+        end
+    end
+end
+return {
+    startMonitoring = startMonitoring,
+    stopMonitoring = stopMonitoring
+}
