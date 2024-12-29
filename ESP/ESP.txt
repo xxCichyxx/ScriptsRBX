@@ -1,0 +1,147 @@
+-- ESP.lua
+local Players = game:GetService("Players")
+local processedPlayers = {}  -- Tabela do przechowywania przetworzonych graczy
+local isESPEnabled = false
+local monitoringActive = false  -- Zmienna kontrolująca, czy monitorowanie jest aktywne
+local targetGameId = 142823291  -- ID gry, w której ESP ma działać
+
+-- Funkcja do podświetlania gracza na określony kolor
+local function ensureHighlight(character, color)
+    if not character or not character:IsA("Model") then return end
+
+    -- Sprawdzamy, czy highlight już istnieje
+    local highlight = character:FindFirstChildOfClass("Highlight")
+    if not highlight then
+        highlight = Instance.new("Highlight")
+        highlight.Parent = character
+        highlight.Adornee = character
+    end
+
+    -- Ustawiamy kolor highlighta
+    highlight.FillColor = color
+    highlight.OutlineColor = color
+    highlight.OutlineTransparency = 0
+    highlight.FillTransparency = 0.4
+end
+
+-- Funkcja usuwająca highlight gracza
+local function removeHighlight(character)
+    if not character or not character:IsA("Model") then return end
+    local highlight = character:FindFirstChildOfClass("Highlight")
+    if highlight then
+        highlight:Destroy()  -- Usuwamy highlight
+    end
+end
+
+-- Funkcja monitorująca obecność highlighta
+local function monitorHighlight(player)
+    if not isESPEnabled or game.PlaceId ~= targetGameId then return end  -- Sprawdzamy ID gry
+
+    -- Monitorowanie graczy
+    if player.Character then
+        local character = player.Character
+        -- Sprawdzamy, czy gracz ma highlight
+        local highlight = character:FindFirstChildOfClass("Highlight")
+        if not highlight then
+            ensureHighlight(character, Color3.fromRGB(0, 255, 0))  -- Zielony jako domyślny kolor
+        end
+    end
+end
+
+-- Funkcja monitorująca kolory na podstawie przedmiotów
+local function monitorColors(player, character)
+    if not player or not character then return end
+    if not isESPEnabled or game.PlaceId ~= targetGameId then return end  -- Sprawdzamy ID gry
+
+    local backpack = player.Backpack
+    local hasKnife = backpack:FindFirstChild("Knife") or character:FindFirstChild("Knife")  -- Sprawdzamy, czy gracz ma nóż
+    local hasGun = backpack:FindFirstChild("Gun") or character:FindFirstChild("Gun")     -- Sprawdzamy, czy gracz ma broń
+
+    -- Wykrywanie Mordercy (Murderer)
+    if hasKnife then
+        ensureHighlight(character, Color3.fromRGB(255, 0, 0))   -- Czerwony Highlight dla Murderer
+        processedPlayers[player] = "Murderer" -- Oznaczamy gracza jako Murderer
+    -- Wykrywanie Szeryfa (Sheriff)
+    elseif hasGun then
+        ensureHighlight(character, Color3.fromRGB(0, 0, 255))  -- Niebieski Highlight dla Sheriff
+        processedPlayers[player] = "Sheriff"  -- Oznaczamy gracza jako Sheriff
+    -- Wykrywanie Innocent (Niewinnych)
+    else
+        ensureHighlight(character, Color3.fromRGB(0, 255, 0))   -- Zielony Highlight dla Innocent
+        processedPlayers[player] = "Innocent" -- Oznaczamy gracza jako Innocent
+    end
+end
+
+-- Funkcja monitorująca graczy w grze
+local function monitorPlayers()
+    if not isESPEnabled or game.PlaceId ~= targetGameId then return end  -- Sprawdzamy ID gry
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        -- Monitorowanie już dołączonych graczy
+        if player.Character then
+            local character = player.Character
+            -- 1. Monitorowanie highlighta
+            monitorHighlight(player)
+
+            -- 2. Monitorowanie kolorów podświetlenia
+            monitorColors(player, character)
+        end
+
+        -- Obsługa dla nowych postaci gracza
+        player.CharacterAdded:Connect(function(character)
+            -- 1. Monitorowanie highlighta
+            monitorHighlight(player)
+
+            -- 2. Monitorowanie kolorów podświetlenia
+            monitorColors(player, character)
+        end)
+    end
+end
+
+-- Funkcja do ciągłego monitorowania graczy
+local function continuousMonitorPlayers()
+    monitoringActive = true  -- Ustawiamy, że monitorowanie jest aktywne
+
+    while monitoringActive do
+        if not isESPEnabled or game.PlaceId ~= targetGameId then
+            task.wait(1)  -- Jeśli ESP jest wyłączone lub gra ma inne ID, odczekaj chwilę
+            continue
+        end
+
+        -- Monitorowanie już dołączonych graczy
+        monitorPlayers()
+
+        -- Sprawdzamy, którzy gracze już opuścili grę
+        for _, player in ipairs(Players:GetPlayers()) do
+            if not player.Character and processedPlayers[player] then
+                processedPlayers[player] = nil -- Usuwamy gracza z tabeli, jeśli opuścił grę
+            end
+        end
+
+        -- Odczekaj przed kolejnym cyklem
+        task.wait(2) -- Odczekaj 2 sekundy przed kolejnym cyklem
+    end
+end
+
+-- Funkcja do uruchomienia monitorowania
+local function startMonitoring()
+    isESPEnabled = true
+    continuousMonitorPlayers()  -- Rozpoczynamy monitorowanie
+end
+
+-- Funkcja do zatrzymania monitorowania
+local function stopMonitoring()
+    isESPEnabled = false
+    monitoringActive = false  -- Zatrzymujemy monitorowanie
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Character then
+            removeHighlight(player.Character)  -- Usuwamy highlighty
+        end
+    end
+end
+
+-- Exportujemy funkcje, aby można było je wywoływać z innych skryptów
+return {
+    startMonitoring = startMonitoring,
+    stopMonitoring = stopMonitoring
+}
