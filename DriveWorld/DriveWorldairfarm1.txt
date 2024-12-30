@@ -24,6 +24,11 @@ local function maintainRandomHeight(car)
         local targetPosition = Vector3.new(currentPosition.X, targetHeight, currentPosition.Z)
         carPrimaryPart.CFrame = CFrame.new(targetPosition)  -- Teleportacja na losową wysokość
 
+        -- Naprawa kamery - ustawienie kamery w prawidłowej pozycji, by widzieć pojazd
+        local camera = game.Workspace.CurrentCamera
+        local cameraPosition = carPrimaryPart.Position + Vector3.new(0, 10, 15)  -- Lekko za i nad pojazdem
+        camera.CFrame = CFrame.new(cameraPosition, carPrimaryPart.Position)
+
         -- Czekaj chwilę, zanim pojazd znów zostanie teleportowany
         wait(0.1)
     end
