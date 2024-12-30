@@ -8,33 +8,25 @@ local moveCoroutine = nil
 
 -- Parametry wysokości
 local minHeight = 250  -- Minimalna wysokość
-local maxHeight = 650  -- Maksymalna wysokość
-local correctionSpeed = 12  -- Szybkość korekty wysokości
+local maxHeight = 550  -- Maksymalna wysokość
 
--- Funkcja do ustawiania pojazdu w odpowiedniej wysokości (w obrębie minHeight - maxHeight)
+-- Funkcja do utrzymywania pojazdu na wysokości w zakresie (minHeight - maxHeight)
 local function maintainHeight(car)
     local carPrimaryPart = car.PrimaryPart
 
+    -- Ciągła pętla, dopóki jest aktywne monitorowanie
     while isActive do
         local currentPosition = carPrimaryPart.Position
 
-        -- Odczytanie aktualnej wysokości i korekta w obrębie (minHeight - maxHeight)
-        local currentHeight = currentPosition.Y
-        local targetHeight = math.clamp(currentHeight, minHeight, maxHeight)
+        -- Obliczanie aktualnej wysokości i zapewnienie, że pojazd pozostanie w określonym zakresie
+        local targetHeight = math.clamp(currentPosition.Y, minHeight, maxHeight)
 
-        -- Jeśli wysokość pojazdu różni się od żądanej, dostosuj ją
-        if currentHeight ~= targetHeight then
-            local targetPosition = Vector3.new(currentPosition.X, targetHeight, currentPosition.Z)
-            carPrimaryPart.CFrame = CFrame.new(targetPosition)  -- Teleportuj pojazd na nową wysokość
-        end
+        -- Ustawienie nowej pozycji z odpowiednią wysokością, ale ta sama X i Z
+        local targetPosition = Vector3.new(currentPosition.X, targetHeight, currentPosition.Z)
+        carPrimaryPart.CFrame = CFrame.new(targetPosition)  -- Teleportacja pojazdu
 
-        -- Korekta kamery, aby patrzyła na pojazd
-        local camera = game.Workspace.CurrentCamera
-        local cameraPosition = carPrimaryPart.Position + Vector3.new(0, 10, 15)  -- Kamera lekko za pojazdem
-        camera.CFrame = CFrame.new(cameraPosition, carPrimaryPart.Position)
-
-        -- Czekaj chwilę, zanim pojazd znowu będzie teleportowany
-        wait(0.1)
+        -- Czekaj chwilę, zanim ponownie ustalisz wysokość
+        wait(0.1)  -- Optymalizujemy czas oczekiwania, aby zmniejszyć obciążenie
     end
 end
 
@@ -57,7 +49,7 @@ local function detectVehicle()
                         moveCoroutine = coroutine.wrap(function()
                             maintainHeight(car)
                         end)
-                        moveCoroutine()
+                        moveCoroutine()  -- Uruchomienie coroutine
                     end
                 elseif seat.Occupant == nil then
                     print("Gracz wysiadł z pojazdu: " .. car.Name)
@@ -101,7 +93,7 @@ local function stopMonitoring()
     isActive = false
     currentCar = nil
 
-    -- Zatrzymujemy coroutine
+    -- Zatrzymanie coroutine
     if moveCoroutine then
         coroutine.yield(moveCoroutine)
         moveCoroutine = nil
