@@ -5,52 +5,28 @@ local isActive = false
 local currentCar = nil
 local moveCoroutine = nil
 
--- Parametry lotu i spadania
-local maxHeight = 500  -- Maksymalna wysokość, na jaką ma polecieć pojazd
-local initialRiseSpeed = 50  -- Początkowa prędkość unoszenia (w jednostkach na sekundę)
-local gravityAcceleration = 10  -- Przyspieszenie grawitacyjne (prędkość spadania rośnie z każdą sekundą)
+-- Parametry lotu
+local targetHeight = 500  -- Docelowa wysokość, na której pojazd ma się utrzymywać
+local correctionSpeed = 10  -- Szybkość korekty (prędkość zmiany wysokości)
 
--- Funkcja do unoszenia pojazdu do góry
-local function riseToMaxHeight(car)
+-- Funkcja do utrzymywania pojazdu na wyznaczonej wysokości
+local function maintainHeight(car)
     local carPrimaryPart = car.PrimaryPart
-    local currentPosition = carPrimaryPart.Position  -- Aktualna pozycja pojazdu
 
-    -- Unosimy pojazd w górę, aż osiągnie maksymalną wysokość
-    while currentPosition.Y < maxHeight do
-        currentPosition = currentPosition + Vector3.new(0, initialRiseSpeed * 0.1, 0)  -- Zwiększamy Y
-        carPrimaryPart.CFrame = CFrame.new(currentPosition)  -- Teleportacja w górę
-        wait(0.1)  -- Czekamy, aby ruch był płynny
-    end
-
-    -- Utrzymujemy pojazd na maksymalnej wysokości
     while isActive do
-        currentPosition = Vector3.new(currentPosition.X, maxHeight, currentPosition.Z)
-        carPrimaryPart.CFrame = CFrame.new(currentPosition)
-        wait(0.1)  -- Utrzymywanie pozycji
-    end
-end
+        local currentPosition = carPrimaryPart.Position
 
--- Funkcja symulująca spadanie bezwładne
-local function simulateFall(car)
-    local carPrimaryPart = car.PrimaryPart
-    local currentFallSpeed = 0  -- Prędkość spadania (rozpoczyna się od 0)
-    local currentPosition = carPrimaryPart.Position
+        -- Jeśli pojazd jest poniżej docelowej wysokości, unosimy go
+        if currentPosition.Y < targetHeight then
+            local targetPosition = Vector3.new(currentPosition.X, targetHeight, currentPosition.Z)
+            carPrimaryPart.CFrame = CFrame.new(targetPosition)  -- Teleportacja na docelową wysokość
+        -- Jeśli pojazd jest powyżej docelowej wysokości, opuszczamy go
+        elseif currentPosition.Y > targetHeight then
+            local targetPosition = Vector3.new(currentPosition.X, targetHeight, currentPosition.Z)
+            carPrimaryPart.CFrame = CFrame.new(targetPosition)  -- Teleportacja na docelową wysokość
+        end
 
-    -- Dopóki pojazd nie osiągnie ziemi (0 na osi Y)
-    while currentPosition.Y > 0 do
-        -- Zwiększamy prędkość spadania (symulacja przyspieszenia)
-        currentFallSpeed = currentFallSpeed + gravityAcceleration * 0.1  -- Przyspieszenie co 0.1 sekundy
-        
-        -- Nowa pozycja, teleportujemy pojazd w dół z rosnącą prędkością
-        local targetPosition = Vector3.new(currentPosition.X, currentPosition.Y - currentFallSpeed, currentPosition.Z)
-
-        -- Teleportacja
-        carPrimaryPart.CFrame = CFrame.new(targetPosition)
-
-        -- Aktualizacja obecnej pozycji
-        currentPosition = targetPosition
-        
-        -- Czekamy krótki czas, aby stworzyć efekt spadania (przyspieszonego ruchu)
+        -- Czekamy, żeby płynnie utrzymywać pojazd na tej wysokości
         wait(0.1)
     end
 end
@@ -72,11 +48,7 @@ local function detectVehicle()
                         isActive = true
                         currentCar = car
                         moveCoroutine = coroutine.wrap(function()
-                            while isActive do
-                                local startPosition = riseToMaxHeight(car)  -- Pojazd leci do góry
-                                simulateFall(car)  -- Gdy osiągnie maksymalną wysokość, zaczyna spadać
-                                -- Po zakończeniu spadania wróci na wysokość 500 i zacznie znów lecieć
-                            end
+                            maintainHeight(car)  -- Utrzymuj pojazd na docelowej wysokości
                         end)
                         moveCoroutine()
                     end
