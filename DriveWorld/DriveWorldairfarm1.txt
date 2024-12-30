@@ -7,8 +7,8 @@ local moveCoroutine = nil
 
 -- Parametry lotu
 local minHeight = 250  -- Minimalna wysokość
-local maxHeight = 550  -- Maksymalna wysokość
-local correctionSpeed = 10  -- Szybkość korekty (prędkość zmiany wysokości)
+local maxHeight = 650  -- Maksymalna wysokość
+local correctionSpeed = 16  -- Szybkość korekty (prędkość zmiany wysokości)
 
 -- Funkcja do utrzymywania pojazdu na losowej wysokości w obrębie zakresu (250 - 550)
 local function maintainRandomHeight(car)
