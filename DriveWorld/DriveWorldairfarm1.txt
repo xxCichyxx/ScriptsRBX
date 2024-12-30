@@ -1,35 +1,39 @@
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 local isMonitoring = false
 local isActive = false
 local currentCar = nil
 local moveCoroutine = nil
 
--- Parametry lotu
+-- Parametry wysokości
 local minHeight = 250  -- Minimalna wysokość
 local maxHeight = 650  -- Maksymalna wysokość
-local correctionSpeed = 16  -- Szybkość korekty (prędkość zmiany wysokości)
+local correctionSpeed = 12  -- Szybkość korekty wysokości
 
--- Funkcja do utrzymywania pojazdu na losowej wysokości w obrębie zakresu (250 - 550)
-local function maintainRandomHeight(car)
+-- Funkcja do ustawiania pojazdu w odpowiedniej wysokości (w obrębie minHeight - maxHeight)
+local function maintainHeight(car)
     local carPrimaryPart = car.PrimaryPart
 
     while isActive do
         local currentPosition = carPrimaryPart.Position
 
-        -- Losowanie wysokości w zakresie (minHeight - maxHeight)
-        local targetHeight = math.random(minHeight, maxHeight)
+        -- Odczytanie aktualnej wysokości i korekta w obrębie (minHeight - maxHeight)
+        local currentHeight = currentPosition.Y
+        local targetHeight = math.clamp(currentHeight, minHeight, maxHeight)
 
-        -- Ustawienie nowej pozycji z losową wysokością, ale ta sama X i Z
-        local targetPosition = Vector3.new(currentPosition.X, targetHeight, currentPosition.Z)
-        carPrimaryPart.CFrame = CFrame.new(targetPosition)  -- Teleportacja na losową wysokość
+        -- Jeśli wysokość pojazdu różni się od żądanej, dostosuj ją
+        if currentHeight ~= targetHeight then
+            local targetPosition = Vector3.new(currentPosition.X, targetHeight, currentPosition.Z)
+            carPrimaryPart.CFrame = CFrame.new(targetPosition)  -- Teleportuj pojazd na nową wysokość
+        end
 
-        -- Naprawa kamery - ustawienie kamery w prawidłowej pozycji, by widzieć pojazd
+        -- Korekta kamery, aby patrzyła na pojazd
         local camera = game.Workspace.CurrentCamera
-        local cameraPosition = carPrimaryPart.Position + Vector3.new(0, 10, 15)  -- Lekko za i nad pojazdem
+        local cameraPosition = carPrimaryPart.Position + Vector3.new(0, 10, 15)  -- Kamera lekko za pojazdem
         camera.CFrame = CFrame.new(cameraPosition, carPrimaryPart.Position)
 
-        -- Czekaj chwilę, zanim pojazd znów zostanie teleportowany
+        -- Czekaj chwilę, zanim pojazd znowu będzie teleportowany
         wait(0.1)
     end
 end
@@ -44,7 +48,6 @@ local function detectVehicle()
         local seat = car:FindFirstChild("Seats") and car.Seats:FindFirstChild("Driver")
         if seat then
             seat:GetPropertyChangedSignal("Occupant"):Connect(function()
-                if not isMonitoring then return end
                 if seat.Occupant == humanoid then
                     print("Gracz wsiadł do pojazdu: " .. car.Name)
                     if not isActive then
@@ -52,7 +55,7 @@ local function detectVehicle()
                         currentCar = car
                         -- Tworzymy coroutine do utrzymywania wysokości
                         moveCoroutine = coroutine.wrap(function()
-                            maintainRandomHeight(car)
+                            maintainHeight(car)
                         end)
                         moveCoroutine()
                     end
