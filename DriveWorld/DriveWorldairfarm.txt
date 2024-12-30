@@ -1,0 +1,97 @@
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local isMonitoring = false
+local isActive = false
+local currentCar = nil
+local step1 = Vector3.new(-106.8024291992188, 220, 1105.06689453125)
+local step2 = Vector3.new(-106.8024291992188, 500, 1105.06689453125)
+local step3 = Vector3.new(-106.8024291992188, 220, -307.06689453125)
+local step4 = Vector3.new(-106.8024291992188, 500, -307.06689453125)
+local step1to2Speed = 1800
+local step2to3Speed = 1550
+local step3to4Speed = 1750
+local step4to1Speed = 1470
+local function calculateDuration(startPosition, endPosition, speed)
+    local distance = (endPosition - startPosition).Magnitude
+    return distance / speed
+end
+local function moveCarToTarget(carPrimaryPart, targetPosition, duration)
+    local targetCFrame = CFrame.new(targetPosition)
+    local tweenInfo = TweenInfo.new(
+        duration,
+        Enum.EasingStyle.Linear,
+        Enum.EasingDirection.Out,
+        0,
+        false,
+        0
+    )
+    local tweenCar = TweenService:Create(carPrimaryPart, tweenInfo, {CFrame = targetCFrame})
+    tweenCar:Play()
+    tweenCar.Completed:Wait()
+end
+local function moveCarInCycle(car)
+    local steps = {
+        {step1, step2, step1to2Speed},
+        {step2, step3, step2to3Speed},
+        {step3, step4, step3to4Speed},
+        {step4, step1, step4to1Speed},
+    }
+
+    while isActive do
+        for _, step in ipairs(steps) do
+            local startPosition = step[1]
+            local endPosition = step[2]
+            local speed = step[3]
+
+            local duration = calculateDuration(startPosition, endPosition, speed)
+            moveCarToTarget(car.PrimaryPart, endPosition, duration)
+        end
+    end
+end
+local function detectVehicle()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+
+    for _, car in pairs(workspace.Cars:GetChildren()) do
+        local seat = car:FindFirstChild("Seats") and car.Seats:FindFirstChild("Driver")
+        if seat then
+            seat:GetPropertyChangedSignal("Occupant"):Connect(function()
+                if seat.Occupant == humanoid then
+                    print("Gracz wsiadł do pojazdu: " .. car.Name)
+                    if not isActive then
+                        isActive = true
+                        currentCar = car
+                        coroutine.wrap(moveCarInCycle)(car)
+                    end
+                elseif seat.Occupant == nil then
+                    if isActive and currentCar == car then
+                        print("Gracz wysiadł z pojazdu: " .. car.Name)
+                        isActive = false
+                        currentCar = nil
+                    end
+                end
+            end)
+        end
+    end
+end
+local function startMonitoring()
+    if isMonitoring then return end
+    isMonitoring = true
+
+    coroutine.wrap(function()
+        while isMonitoring do
+            detectVehicle()
+            wait(1)
+        end
+    end)()
+end
+local function stopMonitoring()
+    isMonitoring = false
+    isActive = false
+    currentCar = nil
+end
+return {
+    startMonitoring = startMonitoring,
+    stopMonitoring = stopMonitoring
+}
