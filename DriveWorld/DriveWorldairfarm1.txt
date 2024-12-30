@@ -5,44 +5,35 @@ local isActive = false
 local currentCar = nil
 local moveCoroutine = nil
 
--- Prędkość pojazdu
-local moveSpeed = 50  -- Prędkość poruszania się pojazdu (jednostki na sekundę)
+-- Prędkość początkowa
+local initialFallSpeed = 10  -- Początkowa prędkość spadania
+local gravityAcceleration = 5  -- Przyspieszenie grawitacyjne (zwiększ prędkość spadania z każdą sekundą)
 
--- Stała wysokość pojazdu
-local fixedHeight = 200  -- Wysokość, na której pojazd ma się utrzymywać (dostosuj do swoich potrzeb)
+-- Początkowa wysokość spadania
+local fixedHeight = 500  -- Wysokość, z której pojazd zaczyna spadać
 
--- Granice randomizacji w osiach X i Z
-local randomOffsetRange = 0  -- Maksymalne przesunięcie w jednostkach w osiach X i Z
-
--- Funkcja do losowego ruchu pojazdu
-local function moveCarWithRandomization(car)
+-- Funkcja symulująca spadanie bezwładne
+local function simulateFall(car)
     local carPrimaryPart = car.PrimaryPart
+    local currentFallSpeed = initialFallSpeed
+    local currentPosition = carPrimaryPart.Position
 
-    while isActive do
-        local currentPosition = carPrimaryPart.Position
+    -- Dopóki pojazd nie osiągnie ziemi (0 na osi Y)
+    while currentPosition.Y > 0 do
+        -- Zwiększamy prędkość spadania (symulacja przyspieszenia)
+        currentFallSpeed = currentFallSpeed + gravityAcceleration * 0.1  -- Przyspieszenie co 0.1 sekundy
+        
+        -- Nowa pozycja, teleportujemy pojazd w dół z rosnącą prędkością
+        local targetPosition = Vector3.new(currentPosition.X, currentPosition.Y - currentFallSpeed, currentPosition.Z)
 
-        -- Losowe przesunięcia w osiach X i Z
-        local randomOffsetX = math.random(-randomOffsetRange, randomOffsetRange)
-        local randomOffsetZ = math.random(-randomOffsetRange, randomOffsetRange)
+        -- Teleportacja
+        carPrimaryPart.CFrame = CFrame.new(targetPosition)
 
-        -- Nowa pozycja
-        local targetPosition = Vector3.new(
-            currentPosition.X + randomOffsetX,
-            fixedHeight,  -- Stała wysokość
-            currentPosition.Z + randomOffsetZ
-        )
-
-        -- Przesunięcie pojazdu
-        local tweenInfo = TweenInfo.new(
-            0.1,  -- Krótki czas animacji
-            Enum.EasingStyle.Linear,
-            Enum.EasingDirection.Out
-        )
-        local tween = TweenService:Create(carPrimaryPart, tweenInfo, {CFrame = CFrame.new(targetPosition)})
-        tween:Play()
-        tween.Completed:Wait()
-
-        -- (Usunięto funkcję obracania kół, więc brak jest tego efektu)
+        -- Aktualizacja obecnej pozycji
+        currentPosition = targetPosition
+        
+        -- Czekamy krótki czas, aby stworzyć efekt spadania (przyspieszonego ruchu)
+        wait(0.1)
     end
 end
 
@@ -63,13 +54,13 @@ local function detectVehicle()
                         isActive = true
                         currentCar = car
                         moveCoroutine = coroutine.wrap(function()
-                            moveCarWithRandomization(car)
+                            simulateFall(car)  -- Uruchamiamy spadanie z teleportacją
                         end)
                         moveCoroutine()
                     end
                 elseif seat.Occupant == nil then
                     print("Gracz wysiadł z pojazdu: " .. car.Name)
-                    -- Zmieniamy tylko flagę isActive na false, ale nie zatrzymujemy monitoringu
+                    -- Zatrzymanie tylko ruchu pojazdu, monitoring nadal trwa
                     isActive = false
                 end
             end)
@@ -82,10 +73,11 @@ local function startMonitoring()
     if isMonitoring then return end
     isMonitoring = true
 
+    -- Ciągła pętla monitorująca pojazdy
     coroutine.wrap(function()
         while isMonitoring do
-            detectVehicle()
-            wait(1)
+            detectVehicle()  -- Sprawdzaj pojazdy
+            wait(1)  -- Czekaj 1 sekundę przed kolejnym sprawdzeniem
         end
     end)()
 end
