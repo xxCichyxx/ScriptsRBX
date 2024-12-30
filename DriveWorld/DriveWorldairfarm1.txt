@@ -6,8 +6,8 @@ local currentCar = nil
 local moveCoroutine = nil
 
 -- Parametry lotu
-local targetHeight = 500  -- Docelowa wysokość, na której pojazd ma się utrzymywać
-local correctionSpeed = 10  -- Szybkość korekty (prędkość zmiany wysokości)
+local targetHeight = 550  -- Docelowa wysokość, na której pojazd ma się utrzymywać
+local correctionSpeed = 8  -- Szybkość korekty (prędkość zmiany wysokości)
 
 -- Funkcja do utrzymywania pojazdu na wyznaczonej wysokości
 local function maintainHeight(car)
