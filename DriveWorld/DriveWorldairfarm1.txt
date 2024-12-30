@@ -20,10 +20,10 @@ end
 
 local function startAutofarm(parts, player)
     local autofarmActive = true
-    local maxHeight = 350
-    local minHeight = 200
-    local fallVelocity = -45
-    local delayBetweenMoves = 0.02
+    local maxHeight = 380
+    local minHeight = 180
+    local fallVelocity = -55
+    local delayBetweenMoves = 0.05
     local function teleportPart(part)
         if not part:IsDescendantOf(workspace) then return end
         part.CFrame = CFrame.new(part.Position.X, maxHeight, part.Position.Z)
