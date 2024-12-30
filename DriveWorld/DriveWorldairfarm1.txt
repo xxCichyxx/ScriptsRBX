@@ -26,7 +26,7 @@ local function maintainHeight(car)
             carPrimaryPart.CFrame = CFrame.new(targetPosition)  -- Teleportacja na docelową wysokość
         end
 
-        -- Czekamy, żeby płynnie utrzymywać pojazd na tej wysokości
+        -- Czekamy, aby pojazd był ciągle utrzymywany na stałej wysokości
         wait(0.1)
     end
 end
@@ -47,8 +47,9 @@ local function detectVehicle()
                     if not isActive then
                         isActive = true
                         currentCar = car
+                        -- Tworzymy coroutine do utrzymywania wysokości
                         moveCoroutine = coroutine.wrap(function()
-                            maintainHeight(car)  -- Utrzymuj pojazd na docelowej wysokości
+                            maintainHeight(car)
                         end)
                         moveCoroutine()
                     end
@@ -64,8 +65,13 @@ end
 
 -- Funkcja do włączania monitoringu
 local function startMonitoring()
-    if isMonitoring then return end
+    if isMonitoring then
+        print("Monitoring już jest włączony")
+        return  -- Jeśli monitoring jest już włączony, nie rób nic
+    end
+
     isMonitoring = true
+    print("Monitoring włączony")
 
     -- Ciągła pętla monitorująca pojazdy
     coroutine.wrap(function()
@@ -78,10 +84,18 @@ end
 
 -- Funkcja do wyłączania monitoringu
 local function stopMonitoring()
+    if not isMonitoring then
+        print("Monitoring już jest wyłączony")
+        return  -- Jeśli monitoring jest już wyłączony, nie rób nic
+    end
+
+    print("Monitoring wyłączony")
+
     isMonitoring = false
     isActive = false
     currentCar = nil
 
+    -- Zatrzymujemy coroutine
     if moveCoroutine then
         coroutine.yield(moveCoroutine)
         moveCoroutine = nil
