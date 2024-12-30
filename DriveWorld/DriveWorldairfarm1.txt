@@ -9,7 +9,7 @@ local moveCoroutine = nil
 local moveSpeed = 50  -- Prędkość poruszania się pojazdu (jednostki na sekundę)
 
 -- Stała wysokość pojazdu
-local fixedHeight = 50  -- Wysokość, na której pojazd ma się utrzymywać (dostosuj do swoich potrzeb)
+local fixedHeight = 200  -- Wysokość, na której pojazd ma się utrzymywać (dostosuj do swoich potrzeb)
 
 -- Granice randomizacji w osiach X i Z
 local randomOffsetRange = 1  -- Maksymalne przesunięcie w jednostkach w osiach X i Z
