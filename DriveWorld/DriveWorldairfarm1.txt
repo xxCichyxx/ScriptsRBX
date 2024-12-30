@@ -1,0 +1,127 @@
+local TweenService = game:GetService("TweenService")
+
+local isMonitoring = false
+local isActive = false
+local currentCar = nil
+local moveCoroutine = nil
+
+-- Prędkość pojazdu
+local moveSpeed = 50  -- Prędkość poruszania się pojazdu (jednostki na sekundę)
+
+-- Stała wysokość pojazdu
+local fixedHeight = 50  -- Wysokość, na której pojazd ma się utrzymywać (dostosuj do swoich potrzeb)
+
+-- Granice randomizacji w osiach X i Z
+local randomOffsetRange = 1  -- Maksymalne przesunięcie w jednostkach w osiach X i Z
+
+-- Funkcja do obracania kół na podstawie prędkości
+local function rotateWheels(wheels, speed)
+    local wheelRotationSpeed = speed * 10  -- Dostosuj wartość '10', aby zmienić prędkość obrotu
+
+    for _, wheel in pairs(wheels) do
+        wheel.RotVelocity = Vector3.new(0, wheelRotationSpeed, 0)  -- Obrót wokół osi Y
+    end
+end
+
+-- Funkcja do losowego ruchu pojazdu
+local function moveCarWithRandomization(car)
+    local carPrimaryPart = car.PrimaryPart
+    local wheels = {
+        car.Wheels.BL,
+        car.Wheels.BR,
+        car.Wheels.FL,
+        car.Wheels.FR,
+    }
+
+    while isActive do
+        local currentPosition = carPrimaryPart.Position
+
+        -- Losowe przesunięcia w osiach X i Z
+        local randomOffsetX = math.random(-randomOffsetRange, randomOffsetRange)
+        local randomOffsetZ = math.random(-randomOffsetRange, randomOffsetRange)
+
+        -- Nowa pozycja
+        local targetPosition = Vector3.new(
+            currentPosition.X + randomOffsetX,
+            fixedHeight,  -- Stała wysokość
+            currentPosition.Z + randomOffsetZ
+        )
+
+        -- Przesunięcie pojazdu
+        local tweenInfo = TweenInfo.new(
+            0.1,  -- Krótki czas animacji
+            Enum.EasingStyle.Linear,
+            Enum.EasingDirection.Out
+        )
+        local tween = TweenService:Create(carPrimaryPart, tweenInfo, {CFrame = CFrame.new(targetPosition)})
+        tween:Play()
+        tween.Completed:Wait()
+
+        -- Obrót kół
+        rotateWheels(wheels, moveSpeed)
+    end
+end
+
+-- Funkcja do wykrywania pojazdu
+local function detectVehicle()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+
+    for _, car in pairs(workspace.Cars:GetChildren()) do
+        local seat = car:FindFirstChild("Seats") and car.Seats:FindFirstChild("Driver")
+        if seat then
+            seat:GetPropertyChangedSignal("Occupant"):Connect(function()
+                if not isMonitoring then return end
+                if seat.Occupant == humanoid then
+                    print("Gracz wsiadł do pojazdu: " .. car.Name)
+                    if not isActive then
+                        isActive = true
+                        currentCar = car
+                        moveCoroutine = coroutine.wrap(function()
+                            moveCarWithRandomization(car)
+                        end)
+                        moveCoroutine()
+                    end
+                elseif seat.Occupant == nil then
+                    print("Gracz wysiadł z pojazdu: " .. car.Name)
+                    isActive = false
+                    if moveCoroutine then
+                        coroutine.yield(moveCoroutine)  -- Zatrzymanie pętli
+                        moveCoroutine = nil
+                    end
+                end
+            end)
+        end
+    end
+end
+
+-- Funkcja do włączania monitoringu
+local function startMonitoring()
+    if isMonitoring then return end
+    isMonitoring = true
+
+    coroutine.wrap(function()
+        while isMonitoring do
+            detectVehicle()
+            wait(1)
+        end
+    end)()
+end
+
+-- Funkcja do wyłączania monitoringu
+local function stopMonitoring()
+    isMonitoring = false
+    isActive = false
+    currentCar = nil
+
+    if moveCoroutine then
+        coroutine.yield(moveCoroutine)
+        moveCoroutine = nil
+    end
+end
+
+return {
+    startMonitoring = startMonitoring,
+    stopMonitoring = stopMonitoring,
+}
