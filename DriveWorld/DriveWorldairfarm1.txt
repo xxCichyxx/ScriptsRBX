@@ -6,7 +6,7 @@ local currentCar = nil
 local moveCoroutine = nil
 
 -- Parametry lotu i spadania
-local maxHeight = 550  -- Maksymalna wysokość, na jaką ma polecieć pojazd
+local maxHeight = 500  -- Maksymalna wysokość, na jaką ma polecieć pojazd
 local initialRiseSpeed = 50  -- Początkowa prędkość unoszenia (w jednostkach na sekundę)
 local gravityAcceleration = 10  -- Przyspieszenie grawitacyjne (prędkość spadania rośnie z każdą sekundą)
 
@@ -14,7 +14,6 @@ local gravityAcceleration = 10  -- Przyspieszenie grawitacyjne (prędkość spad
 local function riseToMaxHeight(car)
     local carPrimaryPart = car.PrimaryPart
     local currentPosition = carPrimaryPart.Position  -- Aktualna pozycja pojazdu
-    local initialHeight = currentPosition.Y  -- Pobieramy aktualną wysokość pojazdu
 
     -- Unosimy pojazd w górę, aż osiągnie maksymalną wysokość
     while currentPosition.Y < maxHeight do
@@ -23,9 +22,12 @@ local function riseToMaxHeight(car)
         wait(0.1)  -- Czekamy, aby ruch był płynny
     end
 
-    -- Utrzymujemy pojazd na maksymalnej wysokości przez chwilę
-    wait(1)  -- Poczekaj chwilę, zanim zacznie spadać
-    return currentPosition
+    -- Utrzymujemy pojazd na maksymalnej wysokości
+    while isActive do
+        currentPosition = Vector3.new(currentPosition.X, maxHeight, currentPosition.Z)
+        carPrimaryPart.CFrame = CFrame.new(currentPosition)
+        wait(0.1)  -- Utrzymywanie pozycji
+    end
 end
 
 -- Funkcja symulująca spadanie bezwładne
@@ -73,7 +75,7 @@ local function detectVehicle()
                             while isActive do
                                 local startPosition = riseToMaxHeight(car)  -- Pojazd leci do góry
                                 simulateFall(car)  -- Gdy osiągnie maksymalną wysokość, zaczyna spadać
-                                -- Po zakończeniu spadania wróci z powrotem do góry.
+                                -- Po zakończeniu spadania wróci na wysokość 500 i zacznie znów lecieć
                             end
                         end)
                         moveCoroutine()
