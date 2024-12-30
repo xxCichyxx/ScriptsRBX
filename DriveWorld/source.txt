@@ -1,3 +1,15 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "Drive World",
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "by xxCichyxx",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = nil,
+        FileName = "driveworld_config"
+    },
+    KeySystem = false,
+})
 local AutoFarm = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/DriveWorld/DriveWorldairfarm.txt'))()
 local AutoFarm1 = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/DriveWorld/DriveWorldairfarm1.txt'))()
 local AutoFarm2 = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/DriveWorld/DriveWorlddriftfram1.txt'))()
