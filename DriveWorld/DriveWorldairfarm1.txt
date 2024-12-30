@@ -6,27 +6,25 @@ local currentCar = nil
 local moveCoroutine = nil
 
 -- Parametry lotu
-local targetHeight = 550  -- Docelowa wysokość, na której pojazd ma się utrzymywać
-local correctionSpeed = 8  -- Szybkość korekty (prędkość zmiany wysokości)
+local minHeight = 250  -- Minimalna wysokość
+local maxHeight = 550  -- Maksymalna wysokość
+local correctionSpeed = 10  -- Szybkość korekty (prędkość zmiany wysokości)
 
--- Funkcja do utrzymywania pojazdu na wyznaczonej wysokości
-local function maintainHeight(car)
+-- Funkcja do utrzymywania pojazdu na losowej wysokości w obrębie zakresu (250 - 550)
+local function maintainRandomHeight(car)
     local carPrimaryPart = car.PrimaryPart
 
     while isActive do
         local currentPosition = carPrimaryPart.Position
 
-        -- Jeśli pojazd jest poniżej docelowej wysokości, unosimy go
-        if currentPosition.Y < targetHeight then
-            local targetPosition = Vector3.new(currentPosition.X, targetHeight, currentPosition.Z)
-            carPrimaryPart.CFrame = CFrame.new(targetPosition)  -- Teleportacja na docelową wysokość
-        -- Jeśli pojazd jest powyżej docelowej wysokości, opuszczamy go
-        elseif currentPosition.Y > targetHeight then
-            local targetPosition = Vector3.new(currentPosition.X, targetHeight, currentPosition.Z)
-            carPrimaryPart.CFrame = CFrame.new(targetPosition)  -- Teleportacja na docelową wysokość
-        end
+        -- Losowanie wysokości w zakresie (minHeight - maxHeight)
+        local targetHeight = math.random(minHeight, maxHeight)
 
-        -- Czekamy, aby pojazd był ciągle utrzymywany na stałej wysokości
+        -- Ustawienie nowej pozycji z losową wysokością, ale ta sama X i Z
+        local targetPosition = Vector3.new(currentPosition.X, targetHeight, currentPosition.Z)
+        carPrimaryPart.CFrame = CFrame.new(targetPosition)  -- Teleportacja na losową wysokość
+
+        -- Czekaj chwilę, zanim pojazd znów zostanie teleportowany
         wait(0.1)
     end
 end
@@ -49,7 +47,7 @@ local function detectVehicle()
                         currentCar = car
                         -- Tworzymy coroutine do utrzymywania wysokości
                         moveCoroutine = coroutine.wrap(function()
-                            maintainHeight(car)
+                            maintainRandomHeight(car)
                         end)
                         moveCoroutine()
                     end
