@@ -6,7 +6,7 @@ local currentCar = nil
 local moveCoroutine = nil
 
 -- Parametry lotu i spadania
-local maxHeight = 500  -- Maksymalna wysokość, na jaką ma polecieć pojazd
+local maxHeight = 550  -- Maksymalna wysokość, na jaką ma polecieć pojazd
 local initialRiseSpeed = 50  -- Początkowa prędkość unoszenia (w jednostkach na sekundę)
 local gravityAcceleration = 10  -- Przyspieszenie grawitacyjne (prędkość spadania rośnie z każdą sekundą)
 
@@ -70,8 +70,11 @@ local function detectVehicle()
                         isActive = true
                         currentCar = car
                         moveCoroutine = coroutine.wrap(function()
-                            local startPosition = riseToMaxHeight(car)  -- Pojazd leci do góry
-                            simulateFall(car)  -- Gdy osiągnie maksymalną wysokość, zaczyna spadać
+                            while isActive do
+                                local startPosition = riseToMaxHeight(car)  -- Pojazd leci do góry
+                                simulateFall(car)  -- Gdy osiągnie maksymalną wysokość, zaczyna spadać
+                                -- Po zakończeniu spadania wróci z powrotem do góry.
+                            end
                         end)
                         moveCoroutine()
                     end
