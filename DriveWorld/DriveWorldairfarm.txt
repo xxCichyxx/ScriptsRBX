@@ -80,6 +80,7 @@ local function detectVehicle()
         local seat = car:FindFirstChild("Seats") and car.Seats:FindFirstChild("Driver")
         if seat then
             seat:GetPropertyChangedSignal("Occupant"):Connect(function()
+                if not isMonitoring then return end  -- Sprawdzamy stan monitoringu
                 if seat.Occupant == humanoid then
                     print("Gracz wsiadł do pojazdu: " .. car.Name)
                     if not isActive then
