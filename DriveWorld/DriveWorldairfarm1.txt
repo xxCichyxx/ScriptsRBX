@@ -1,106 +1,94 @@
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-
-local isMonitoring = false
-local isActive = false
-local currentCar = nil
-local moveCoroutine = nil
-
--- Parametry wysokości
-local minHeight = 250  -- Minimalna wysokość
-local maxHeight = 550  -- Maksymalna wysokość
-
--- Funkcja do utrzymywania pojazdu na wysokości w zakresie (minHeight - maxHeight)
-local function maintainHeight(car)
-    local carPrimaryPart = car.PrimaryPart
-
-    -- Ciągła pętla, dopóki jest aktywne monitorowanie
-    while isActive do
-        local currentPosition = carPrimaryPart.Position
-
-        -- Obliczanie aktualnej wysokości i zapewnienie, że pojazd pozostanie w określonym zakresie
-        local targetHeight = math.clamp(currentPosition.Y, minHeight, maxHeight)
-
-        -- Ustawienie nowej pozycji z odpowiednią wysokością, ale ta sama X i Z
-        local targetPosition = Vector3.new(currentPosition.X, targetHeight, currentPosition.Z)
-        carPrimaryPart.CFrame = CFrame.new(targetPosition)  -- Teleportacja pojazdu
-
-        -- Czekaj chwilę, zanim ponownie ustalisz wysokość
-        wait(0.1)  -- Optymalizujemy czas oczekiwania, aby zmniejszyć obciążenie
-    end
-end
-
--- Funkcja do wykrywania pojazdu
-local function detectVehicle()
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-    local humanoid = character:WaitForChild("Humanoid")
-
-    for _, car in pairs(workspace.Cars:GetChildren()) do
-        local seat = car:FindFirstChild("Seats") and car.Seats:FindFirstChild("Driver")
-        if seat then
-            seat:GetPropertyChangedSignal("Occupant"):Connect(function()
-                if seat.Occupant == humanoid then
-                    print("Gracz wsiadł do pojazdu: " .. car.Name)
-                    if not isActive then
-                        isActive = true
-                        currentCar = car
-                        -- Tworzymy coroutine do utrzymywania wysokości
-                        moveCoroutine = coroutine.wrap(function()
-                            maintainHeight(car)
-                        end)
-                        moveCoroutine()  -- Uruchomienie coroutine
-                    end
-                elseif seat.Occupant == nil then
-                    print("Gracz wysiadł z pojazdu: " .. car.Name)
-                    -- Zatrzymanie tylko ruchu pojazdu, monitoring nadal trwa
-                    isActive = false
+local function getSpecificParts(car)
+    local parts = {}
+    local function addPartsFromFolder(folder)
+        if folder and folder:IsA("Folder") then
+            for _, child in pairs(folder:GetChildren()) do
+                if child:IsA("BasePart") then
+                    table.insert(parts, child)
                 end
-            end)
+            end
         end
+    end
+    local hitbox = car:FindFirstChild("Hitbox")
+    local wheels = car:FindFirstChild("Wheels")
+    local main = car:FindFirstChild("Main")
+    if hitbox then addPartsFromFolder(hitbox) end
+    if wheels then addPartsFromFolder(wheels) end
+    if main and main:IsA("BasePart") then table.insert(parts, main) end
+    return parts
+end
+
+local function startAutofarm(parts, player)
+    local autofarmActive = true
+    local maxHeight = 350
+    local minHeight = 200
+    local fallVelocity = -45
+    local delayBetweenMoves = 0.02
+    local function teleportPart(part)
+        if not part:IsDescendantOf(workspace) then return end
+        part.CFrame = CFrame.new(part.Position.X, maxHeight, part.Position.Z)
+        while part.Position.Y > minHeight and autofarmActive do
+            part.CFrame = CFrame.new(part.Position.X, part.Position.Y + fallVelocity * delayBetweenMoves, part.Position.Z)
+            wait(delayBetweenMoves)
+        end
+        part.CFrame = CFrame.new(part.Position.X, maxHeight, part.Position.Z)
+    end
+    for _, part in pairs(parts) do
+        coroutine.wrap(function()
+            while autofarmActive do
+                teleportPart(part)
+                wait(delayBetweenMoves)
+            end
+        end)()
+    end
+    return function()
+        autofarmActive = false
     end
 end
 
--- Funkcja do włączania monitoringu
+local monitoringActive = false
+local stopAutofarmFunc = nil
+
 local function startMonitoring()
-    if isMonitoring then
-        print("Monitoring już jest włączony")
-        return  -- Jeśli monitoring jest już włączony, nie rób nic
-    end
-
-    isMonitoring = true
-    print("Monitoring włączony")
-
-    -- Ciągła pętla monitorująca pojazdy
-    coroutine.wrap(function()
-        while isMonitoring do
-            detectVehicle()  -- Sprawdzaj pojazdy
-            wait(1)  -- Czekaj 1 sekundę przed kolejnym sprawdzeniem
+    monitoringActive = true
+    for _, car in pairs(workspace.Cars:GetChildren()) do
+        if not car:GetAttribute("AutofarmActivated") then
+            car:SetAttribute("AutofarmActivated", false)
         end
-    end)()
+        local seats = car:FindFirstChild("Seats")
+        if seats then
+            local driverSeat = seats:FindFirstChild("Driver")
+            if driverSeat then
+                driverSeat:GetPropertyChangedSignal("Occupant"):Connect(function()
+                    local occupant = driverSeat.Occupant
+                    if occupant then
+                        local player = game.Players:GetPlayerFromCharacter(occupant.Parent)
+                        if player and player == game.Players.LocalPlayer then
+                            if not car:GetAttribute("AutofarmActivated") then
+                                local parts = getSpecificParts(car)
+                                stopAutofarmFunc = startAutofarm(parts, player)
+                                car:SetAttribute("AutofarmActivated", true)
+                                driverSeat:GetPropertyChangedSignal("Occupant"):Wait()
+                                if not driverSeat.Occupant then
+                                    stopAutofarmFunc()
+                                end
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end
 end
 
--- Funkcja do wyłączania monitoringu
 local function stopMonitoring()
-    if not isMonitoring then
-        print("Monitoring już jest wyłączony")
-        return  -- Jeśli monitoring jest już wyłączony, nie rób nic
-    end
-
-    print("Monitoring wyłączony")
-
-    isMonitoring = false
-    isActive = false
-    currentCar = nil
-
-    -- Zatrzymanie coroutine
-    if moveCoroutine then
-        coroutine.yield(moveCoroutine)
-        moveCoroutine = nil
+    monitoringActive = false
+    if stopAutofarmFunc then
+        stopAutofarmFunc()
     end
 end
 
 return {
     startMonitoring = startMonitoring,
-    stopMonitoring = stopMonitoring,
+    stopMonitoring = stopMonitoring
 }
