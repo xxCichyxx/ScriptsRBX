@@ -3,20 +3,31 @@ local RunService = game:GetService("RunService")
 local isMonitoring = false
 local isActive = false
 local currentCar = nil
-local step1 = Vector3.new(-106.8024291992188, 220, 1105.06689453125)
-local step2 = Vector3.new(-106.8024291992188, 500, 1105.06689453125)
-local step3 = Vector3.new(-106.8024291992188, 220, -307.06689453125)
-local step4 = Vector3.new(-106.8024291992188, 500, -307.06689453125)
+local activeCoroutines = {}
+
+-- Punkty trasy (CFrame)
+local startPoint = CFrame.new(-99.98326110839844, 250.248714447021484, 1107.365966796875)
+local step1 = CFrame.new(-106.8024291992188, 220, 1105.06689453125)
+local step2 = CFrame.new(-106.8024291992188, 500, 1105.06689453125)
+local step3 = CFrame.new(-106.8024291992188, 220, -307.06689453125)
+local step4 = CFrame.new(-106.8024291992188, 500, -307.06689453125)
+
+-- Prędkości
+local startToStep1Speed = 1600
 local step1to2Speed = 1800
 local step2to3Speed = 1550
 local step3to4Speed = 1750
 local step4to1Speed = 1470
-local function calculateDuration(startPosition, endPosition, speed)
-    local distance = (endPosition - startPosition).Magnitude
+
+-- Obliczanie czasu trwania animacji
+local function calculateDuration(startCFrame, endCFrame, speed)
+    local distance = (endCFrame.Position - startCFrame.Position).Magnitude
     return distance / speed
 end
-local function moveCarToTarget(carPrimaryPart, targetPosition, duration)
-    local targetCFrame = CFrame.new(targetPosition)
+
+-- Ruch pojazdu
+local function moveCarToTarget(carPrimaryPart, targetCFrame, duration)
+    if not isActive then return end
     local tweenInfo = TweenInfo.new(
         duration,
         Enum.EasingStyle.Linear,
@@ -29,25 +40,37 @@ local function moveCarToTarget(carPrimaryPart, targetPosition, duration)
     tweenCar:Play()
     tweenCar.Completed:Wait()
 end
+
+-- Cykl ruchu pojazdu
 local function moveCarInCycle(car)
+    local coroutineId = tostring(car)
+    table.insert(activeCoroutines, coroutineId)
+
     local steps = {
+        {startPoint, step1, startToStep1Speed},
         {step1, step2, step1to2Speed},
         {step2, step3, step2to3Speed},
         {step3, step4, step3to4Speed},
         {step4, step1, step4to1Speed},
     }
 
-    while isActive do
+    while isActive and table.find(activeCoroutines, coroutineId) do
         for _, step in ipairs(steps) do
-            local startPosition = step[1]
-            local endPosition = step[2]
+            if not isActive then break end
+            local startCFrame = step[1]
+            local endCFrame = step[2]
             local speed = step[3]
 
-            local duration = calculateDuration(startPosition, endPosition, speed)
-            moveCarToTarget(car.PrimaryPart, endPosition, duration)
+            local duration = calculateDuration(startCFrame, endCFrame, speed)
+            moveCarToTarget(car.PrimaryPart, endCFrame, duration)
         end
     end
+
+    -- Usuwanie identyfikatora z aktywnych coroutine
+    table.remove(activeCoroutines, table.find(activeCoroutines, coroutineId))
 end
+
+-- Detekcja pojazdu
 local function detectVehicle()
     local player = game.Players.LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
@@ -75,6 +98,8 @@ local function detectVehicle()
         end
     end
 end
+
+-- Monitorowanie
 local function startMonitoring()
     if isMonitoring then return end
     isMonitoring = true
@@ -86,11 +111,18 @@ local function startMonitoring()
         end
     end)()
 end
+
 local function stopMonitoring()
     isMonitoring = false
     isActive = false
     currentCar = nil
+
+    -- Wyczyszczenie wszystkich aktywnych coroutine
+    for i = #activeCoroutines, 1, -1 do
+        table.remove(activeCoroutines, i)
+    end
 end
+
 return {
     startMonitoring = startMonitoring,
     stopMonitoring = stopMonitoring
