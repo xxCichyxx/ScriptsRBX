@@ -5,17 +5,33 @@ local isActive = false
 local currentCar = nil
 local moveCoroutine = nil
 
--- Prędkość początkowa
-local initialFallSpeed = 10  -- Początkowa prędkość spadania
-local gravityAcceleration = 5  -- Przyspieszenie grawitacyjne (zwiększ prędkość spadania z każdą sekundą)
+-- Parametry lotu i spadania
+local maxHeight = 500  -- Maksymalna wysokość, na jaką ma polecieć pojazd
+local initialRiseSpeed = 50  -- Początkowa prędkość unoszenia (w jednostkach na sekundę)
+local gravityAcceleration = 10  -- Przyspieszenie grawitacyjne (prędkość spadania rośnie z każdą sekundą)
 
--- Początkowa wysokość spadania
-local fixedHeight = 500  -- Wysokość, z której pojazd zaczyna spadać
+-- Funkcja do unoszenia pojazdu do góry
+local function riseToMaxHeight(car)
+    local carPrimaryPart = car.PrimaryPart
+    local currentPosition = carPrimaryPart.Position  -- Aktualna pozycja pojazdu
+    local initialHeight = currentPosition.Y  -- Pobieramy aktualną wysokość pojazdu
+
+    -- Unosimy pojazd w górę, aż osiągnie maksymalną wysokość
+    while currentPosition.Y < maxHeight do
+        currentPosition = currentPosition + Vector3.new(0, initialRiseSpeed * 0.1, 0)  -- Zwiększamy Y
+        carPrimaryPart.CFrame = CFrame.new(currentPosition)  -- Teleportacja w górę
+        wait(0.1)  -- Czekamy, aby ruch był płynny
+    end
+
+    -- Utrzymujemy pojazd na maksymalnej wysokości przez chwilę
+    wait(1)  -- Poczekaj chwilę, zanim zacznie spadać
+    return currentPosition
+end
 
 -- Funkcja symulująca spadanie bezwładne
 local function simulateFall(car)
     local carPrimaryPart = car.PrimaryPart
-    local currentFallSpeed = initialFallSpeed
+    local currentFallSpeed = 0  -- Prędkość spadania (rozpoczyna się od 0)
     local currentPosition = carPrimaryPart.Position
 
     -- Dopóki pojazd nie osiągnie ziemi (0 na osi Y)
@@ -54,7 +70,8 @@ local function detectVehicle()
                         isActive = true
                         currentCar = car
                         moveCoroutine = coroutine.wrap(function()
-                            simulateFall(car)  -- Uruchamiamy spadanie z teleportacją
+                            local startPosition = riseToMaxHeight(car)  -- Pojazd leci do góry
+                            simulateFall(car)  -- Gdy osiągnie maksymalną wysokość, zaczyna spadać
                         end)
                         moveCoroutine()
                     end
