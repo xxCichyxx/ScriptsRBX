@@ -12,7 +12,7 @@ local moveSpeed = 50  -- Prędkość poruszania się pojazdu (jednostki na sekun
 local fixedHeight = 200  -- Wysokość, na której pojazd ma się utrzymywać (dostosuj do swoich potrzeb)
 
 -- Granice randomizacji w osiach X i Z
-local randomOffsetRange = 1  -- Maksymalne przesunięcie w jednostkach w osiach X i Z
+local randomOffsetRange = 0  -- Maksymalne przesunięcie w jednostkach w osiach X i Z
 
 -- Funkcja do losowego ruchu pojazdu
 local function moveCarWithRandomization(car)
@@ -69,11 +69,8 @@ local function detectVehicle()
                     end
                 elseif seat.Occupant == nil then
                     print("Gracz wysiadł z pojazdu: " .. car.Name)
+                    -- Zmieniamy tylko flagę isActive na false, ale nie zatrzymujemy monitoringu
                     isActive = false
-                    if moveCoroutine then
-                        coroutine.yield(moveCoroutine)  -- Zatrzymanie pętli
-                        moveCoroutine = nil
-                    end
                 end
             end)
         end
