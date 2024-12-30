@@ -14,24 +14,9 @@ local fixedHeight = 200  -- Wysokość, na której pojazd ma się utrzymywać (d
 -- Granice randomizacji w osiach X i Z
 local randomOffsetRange = 1  -- Maksymalne przesunięcie w jednostkach w osiach X i Z
 
--- Funkcja do obracania kół na podstawie prędkości
-local function rotateWheels(wheels, speed)
-    local wheelRotationSpeed = speed * 10  -- Dostosuj wartość '10', aby zmienić prędkość obrotu
-
-    for _, wheel in pairs(wheels) do
-        wheel.RotVelocity = Vector3.new(0, wheelRotationSpeed, 0)  -- Obrót wokół osi Y
-    end
-end
-
 -- Funkcja do losowego ruchu pojazdu
 local function moveCarWithRandomization(car)
     local carPrimaryPart = car.PrimaryPart
-    local wheels = {
-        car.Wheels.BL,
-        car.Wheels.BR,
-        car.Wheels.FL,
-        car.Wheels.FR,
-    }
 
     while isActive do
         local currentPosition = carPrimaryPart.Position
@@ -57,8 +42,7 @@ local function moveCarWithRandomization(car)
         tween:Play()
         tween.Completed:Wait()
 
-        -- Obrót kół
-        rotateWheels(wheels, moveSpeed)
+        -- (Usunięto funkcję obracania kół, więc brak jest tego efektu)
     end
 end
 
