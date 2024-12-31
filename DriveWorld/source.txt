@@ -41,7 +41,7 @@ local AutoFarm_Toggle2 = TabAutoFarms:CreateToggle({
 })
 
 local AutoFarm_Toggle3 = TabAutoFarms:CreateToggle({
-    Name = "AutoFarm Drift 0.1",
+    Name = "AutoFarm ? 0.1",
     CurrentValue = false,
     Flag = "ToggleAutoFarm",
     Callback = function(Value)
