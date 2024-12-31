@@ -60,9 +60,9 @@ local AutoFarm_Toggle4 = TabAutoFarms:CreateToggle({
     Flag = "ToggleAutoFarm",
     Callback = function(Value)
         if Value then
-        AutoFarm3.startSpinJumpMonitoring()()  -- Rozpoczynamy AutoFarm
+            AutoFarm3.startSpinJumpMonitoring()
         else
-        AutoFarm3.stopSpinJumpMonitoring()()  -- Zatrzymujemy AutoFarm
+            AutoFarm3.stopSpinJumpMonitoring()
         end
     end,
 })
