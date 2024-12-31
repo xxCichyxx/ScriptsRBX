@@ -1,0 +1,78 @@
+local player = game.Players.LocalPlayer  -- Pobieramy lokalnego gracza
+local screenGui = Instance.new("ScreenGui")  -- Tworzymy nowy ScreenGui
+screenGui.Parent = player.PlayerGui  -- Dodajemy ScreenGui do interfejsu gracza
+
+local tweenService = game:GetService("TweenService")
+
+-- Tworzymy główny TextLabel
+local textLabel = Instance.new("TextLabel")  -- Tworzymy nowy TextLabel
+textLabel.Parent = screenGui  -- Dodajemy TextLabel do ScreenGui
+textLabel.Text = ""  -- Początkowo tekst jest pusty
+textLabel.Size = UDim2.new(0, 600, 0, 100)  -- Ustawiamy większy rozmiar TextLabel
+textLabel.Position = UDim2.new(0.5, -300, 0.5, -50)  -- Ustawiamy pozycję na środku ekranu
+textLabel.TextSize = 48  -- Ustawiamy większy rozmiar czcionki
+textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Kolor tekstu (biały)
+textLabel.BackgroundTransparency = 1  -- Ustawiamy tło na przezroczyste
+textLabel.TextStrokeTransparency = 0.6  -- Lekki cień dla tekstu
+textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)  -- Cień w kolorze czarnym
+
+-- Tworzymy cień wokół tekstu
+local shadow = Instance.new("TextLabel")  -- Tworzymy nowy TextLabel dla cienia
+shadow.Parent = screenGui
+shadow.Text = textLabel.Text  -- Ustawiamy ten sam tekst w cieniu
+shadow.Size = textLabel.Size  -- Rozmiar taki sam jak główny tekst
+shadow.Position = textLabel.Position + UDim2.new(0, 5, 0, 5)  -- Ustawiamy cień w prawy górny róg
+shadow.TextSize = textLabel.TextSize
+shadow.TextColor3 = Color3.fromRGB(0, 0, 0)  -- Kolor cienia (czarny)
+shadow.TextTransparency = 1  -- Początkowo przezroczysty cień
+shadow.TextStrokeTransparency = 0  -- Bez dodatkowego cienia wokół cienia
+shadow.BackgroundTransparency = 1  -- Przezroczyste tło
+shadow.ZIndex = textLabel.ZIndex - 1  -- Ustawiamy cień pod głównym tekstem
+
+-- Animacja pisania tekstu
+local fullText = "Misio Attached"  -- Tekst do wyświetlenia
+local typingSpeed = 0.1  -- Szybkość pisania (im mniejsza wartość, tym szybciej)
+local deletingSpeed = 0.1  -- Szybkość usuwania tekstu (im mniejsza wartość, tym szybciej)
+
+local function typeText()
+    for i = 1, #fullText do
+        textLabel.Text = string.sub(fullText, 1, i)  -- Dodajemy kolejne litery do tekstu
+        shadow.Text = textLabel.Text  -- Synchronizujemy tekst z cieniem
+        wait(typingSpeed)  -- Czekamy, aby efekt był widoczny
+    end
+end
+
+local function deleteText()
+    for i = #fullText, 1, -1 do
+        textLabel.Text = string.sub(fullText, 1, i - 1)  -- Usuwamy literę po literze
+        shadow.Text = textLabel.Text  -- Synchronizujemy tekst z cieniem
+        wait(deletingSpeed)  -- Czekamy, aby efekt był widoczny
+    end
+end
+
+-- Tworzymy animację dla cienia
+local tweenInfo = TweenInfo.new(1.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)  -- Animacja z efektem elastic
+local tweenGoal = {Position = UDim2.new(0.5, -300, 0.5, -50), TextTransparency = 0}  -- Końcowa pozycja i pełna widoczność
+local textTween = tweenService:Create(textLabel, tweenInfo, tweenGoal)
+
+local shadowTweenGoal = {Position = textLabel.Position + UDim2.new(0, 5, 0, 5), TextTransparency = 0.5}  -- Cień ma lekko wyjść z tekstu
+local shadowTween = tweenService:Create(shadow, tweenInfo, shadowTweenGoal)
+
+-- Uruchamiamy animację wejścia
+textTween:Play()  -- Animacja tekstu
+shadowTween:Play()  -- Animacja cienia
+
+-- Rozpoczynamy pisanie tekstu po animacji wejścia
+typeText()
+
+-- Czekamy chwilę, a potem rozpoczynamy usuwanie tekstu
+wait(1)
+
+-- Rozpoczynamy usuwanie tekstu po 1 sekundzie
+deleteText()
+
+-- Po zakończeniu animacji znikania
+wait(1)
+
+-- Usuwamy ScreenGui
+screenGui:Destroy()
