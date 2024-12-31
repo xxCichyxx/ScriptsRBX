@@ -29,8 +29,11 @@ shadow.TextStrokeTransparency = 0  -- Bez dodatkowego cienia wokół cienia
 shadow.BackgroundTransparency = 1  -- Przezroczyste tło
 shadow.ZIndex = textLabel.ZIndex - 1  -- Ustawiamy cień pod głównym tekstem
 
+-- Pobieramy nick gracza
+local playerName = player.Name  -- Możesz również użyć player.DisplayName, aby użyć widocznej nazwy gracza
+
 -- Animacja pisania tekstu
-local fullText = "Misio Attached"  -- Tekst do wyświetlenia
+local fullText = "Witaj Spowrotem " .. playerName .. "!"  -- Tekst z nazwą gracza
 local typingSpeed = 0.1  -- Szybkość pisania (im mniejsza wartość, tym szybciej)
 local deletingSpeed = 0.1  -- Szybkość usuwania tekstu (im mniejsza wartość, tym szybciej)
 
