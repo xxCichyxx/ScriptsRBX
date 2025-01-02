@@ -45,7 +45,6 @@ local function spinAndJumpCarPart(object)
     end
 end
 
--- Funkcja autofarm
 local function startAutofarm(parts, player)
     local autofarmActive = true
     local maxHeight = 380
@@ -74,113 +73,7 @@ local function startAutofarm(parts, player)
     end
 end
 
-local spinJumpMonitoringActive = false
-local spinJumpConnections = {}
-
-local function startSpinJumpMonitoring()
-    print("Rozpoczynanie SpinJump Monitoring")
-
-    if spinJumpMonitoringActive then
-        warn("SpinJump monitoring już działa!")
-        return
-    end
-
-    local carsFolder = workspace:FindFirstChild("Cars")
-    if not carsFolder then
-        warn("Folder 'Cars' nie istnieje w workspace!")
-        return
-    end
-
-    spinJumpMonitoringActive = true
-
-    for _, car in pairs(carsFolder:GetChildren()) do
-        if not car:GetAttribute("SpinJumpActivated") then
-            car:SetAttribute("SpinJumpActivated", false)
-        end
-
-        local seats = car:FindFirstChild("Seats")
-        if not seats then
-            warn("Samochód " .. car.Name .. " nie ma folderu 'Seats'.")
-            return
-        end
-        local driverSeat = seats:FindFirstChild("Driver")
-        if not driverSeat then
-            warn("Samochód " .. car.Name .. " nie ma siedzenia 'Driver'.")
-            return
-        end
-
-        -- Sprawdzamy, czy gracz już siedzi w samochodzie
-        local occupant = driverSeat.Occupant
-        if occupant then
-            local character = occupant.Parent
-            if character then
-                local player = game.Players:GetPlayerFromCharacter(character)
-                if player and player == game.Players.LocalPlayer then
-                    local parts = getSpecificParts(car)
-                    for _, part in pairs(parts) do
-                        spinAndJumpCarPart(part)
-                    end
-                    car:SetAttribute("SpinJumpActivated", true)
-                end
-            end
-        end
-
-        -- Monitorowanie zmian w siedzeniu kierowcy
-        local connection = driverSeat:GetPropertyChangedSignal("Occupant"):Connect(function()
-            if not spinJumpMonitoringActive then return end
-            local occupant = driverSeat.Occupant
-            if occupant then
-                local character = occupant.Parent
-                if character then
-                    local player = game.Players:GetPlayerFromCharacter(character)
-                    if player and player == game.Players.LocalPlayer then
-                        if not car:GetAttribute("SpinJumpActivated") then
-                            local parts = getSpecificParts(car)
-                            for _, part in pairs(parts) do
-                                spinAndJumpCarPart(part)
-                            end
-                            car:SetAttribute("SpinJumpActivated", true)
-                        end
-                    end
-                end
-            end
-        end)
-
-        table.insert(spinJumpConnections, connection)
-    end
-
-    print("Monitoring SpinJump aktywowany.")
-end
-
-local function stopSpinJumpMonitoring()
-    spinJumpMonitoringActive = false
-    for _, connection in pairs(spinJumpConnections) do
-        connection:Disconnect()
-    end
-    spinJumpConnections = {}
-
-    -- Zatrzymywanie całego skakania i obracania
-    for _, car in pairs(workspace.Cars:GetChildren()) do
-        if car:GetAttribute("SpinJumpActivated") then
-            local parts = getSpecificParts(car)
-            for _, part in pairs(parts) do
-                -- Usuwamy siły skakania i obracania
-                local bodyAngularVelocity = part:FindFirstChildOfClass("BodyAngularVelocity")
-                if bodyAngularVelocity then
-                    bodyAngularVelocity:Destroy()
-                end
-                local bodyVelocity = part:FindFirstChildOfClass("BodyVelocity")
-                if bodyVelocity then
-                    bodyVelocity:Destroy()
-                end
-            end
-            car:SetAttribute("SpinJumpActivated", false)
-        end
-    end
-
-    print("Monitoring SpinJump zatrzymany.")
-end
-
+-- Monitorowanie autofarm
 local autofarmMonitoringActive = false
 local stopAutofarmFunc = nil
 
@@ -242,6 +135,134 @@ local function stopAutofarmMonitoring()
     autofarmMonitoringActive = false
     if stopAutofarmFunc then
         stopAutofarmFunc()
+    end
+end
+
+-- Funkcja do obracania i skakania części samochodu
+local function spinAndJumpCarPart(object)
+    if object:IsA("BasePart") then
+        local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+        bodyAngularVelocity.MaxTorque = Vector3.new(10000, 10000, 10000)
+        bodyAngularVelocity.AngularVelocity = Vector3.new(0, 100, 0)
+        bodyAngularVelocity.P = 5000
+        bodyAngularVelocity.Parent = object
+
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)
+        bodyVelocity.Velocity = Vector3.new(0, 200, 0)
+        bodyVelocity.Parent = object
+
+        task.spawn(function()
+            local originalPosition = object.Position
+            while true do
+                object.CFrame = CFrame.new(originalPosition + Vector3.new(0, math.sin(tick() * 10) * 0.5, 0))
+                task.wait(0.03)
+            end
+        end)
+    else
+        warn(object.Name .. " nie jest typu BasePart i został pominięty.")
+    end
+end
+
+-- Monitorowanie SpinJump
+local spinJumpMonitoringActive = false
+local spinJumpConnections = {}
+
+local function startSpinJumpMonitoring()
+    print("Rozpoczynanie SpinJump Monitoring")
+
+    if spinJumpMonitoringActive then
+        warn("SpinJump monitoring już działa!")
+        return
+    end
+
+    local carsFolder = workspace:FindFirstChild("Cars")
+    if not carsFolder then
+        warn("Folder 'Cars' nie istnieje w workspace!")
+        return
+    end
+
+    spinJumpMonitoringActive = true
+
+    for _, car in pairs(carsFolder:GetChildren()) do
+        if not car:GetAttribute("SpinJumpActivated") then
+            car:SetAttribute("SpinJumpActivated", false)
+        end
+
+        local seats = car:FindFirstChild("Seats")
+        if not seats then
+            warn("Samochód " .. car.Name .. " nie ma folderu 'Seats'.")
+            return
+        end
+        local driverSeat = seats:FindFirstChild("Driver")
+        if not driverSeat then
+            warn("Samochód " .. car.Name .. " nie ma siedzenia 'Driver'.")
+            return
+        end
+
+        -- Sprawdzanie, czy gracz już siedzi w samochodzie
+        local occupant = driverSeat.Occupant
+        if occupant then
+            local character = occupant.Parent
+            if character then
+                local player = game.Players:GetPlayerFromCharacter(character)
+                if player and player == game.Players.LocalPlayer then
+                    if not car:GetAttribute("SpinJumpActivated") then
+                        local parts = getSpecificParts(car)
+                        for _, part in pairs(parts) do
+                            spinAndJumpCarPart(part)
+                        end
+                        car:SetAttribute("SpinJumpActivated", true)
+                    end
+                end
+            end
+        end
+
+        -- Monitorowanie zmian w siedzeniu kierowcy
+        local connection = driverSeat:GetPropertyChangedSignal("Occupant"):Connect(function()
+            if not spinJumpMonitoringActive then return end
+            local occupant = driverSeat.Occupant
+            if occupant then
+                local character = occupant.Parent
+                if character then
+                    local player = game.Players:GetPlayerFromCharacter(character)
+                    if player and player == game.Players.LocalPlayer then
+                        if not car:GetAttribute("SpinJumpActivated") then
+                            local parts = getSpecificParts(car)
+                            for _, part in pairs(parts) do
+                                spinAndJumpCarPart(part)
+                            end
+                            car:SetAttribute("SpinJumpActivated", true)
+                        end
+                    end
+                end
+            end
+        end)
+
+        table.insert(spinJumpConnections, connection)
+    end
+
+    print("Monitoring SpinJump aktywowany.")
+end
+
+local function stopSpinJumpMonitoring()
+    spinJumpMonitoringActive = false
+    for _, connection in pairs(spinJumpConnections) do
+        connection:Disconnect()
+    end
+    spinJumpConnections = {}
+
+    -- Zatrzymanie teleportowania
+    for _, car in pairs(workspace.Cars:GetChildren()) do
+        local parts = getSpecificParts(car)
+        for _, part in pairs(parts) do
+            -- Usuwamy BodyAngularVelocity i BodyVelocity
+            for _, bodyPart in pairs(part:GetChildren()) do
+                if bodyPart:IsA("BodyAngularVelocity") or bodyPart:IsA("BodyVelocity") then
+                    bodyPart:Destroy()
+                end
+            end
+        end
     end
 end
 
