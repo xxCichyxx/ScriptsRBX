@@ -81,6 +81,8 @@ end
 
 -- Zarządzanie monitorowaniem obracania/skakania
 local spinJumpMonitoringActive = false
+local spinJumpConnections = {}
+
 local function startSpinJumpMonitoring()
     if spinJumpMonitoringActive then
         warn("SpinJump monitoring już działa!")
@@ -117,9 +119,18 @@ local function startSpinJumpMonitoring()
                             if not part:GetAttribute("SpinJumpOriginalCFrame") then
                                 part:SetAttribute("SpinJumpOriginalCFrame", part.CFrame)
                             end
-                            spinAndJumpCarPart(part)
+                            spinAndJumpCarPart(part, true)
                         end
                         car:SetAttribute("SpinJumpActivated", true)
+                    end
+                else
+                    -- Jeżeli nie ma Occupanta, zatrzymaj SpinJump
+                    if car:GetAttribute("SpinJumpActivated") then
+                        local parts = getSpecificParts(car)
+                        for _, part in pairs(parts) do
+                            spinAndJumpCarPart(part, false)
+                        end
+                        car:SetAttribute("SpinJumpActivated", false)
                     end
                 end
             end)
@@ -137,7 +148,7 @@ local function startSpinJumpMonitoring()
                         if not part:GetAttribute("SpinJumpOriginalCFrame") then
                             part:SetAttribute("SpinJumpOriginalCFrame", part.CFrame)
                         end
-                        spinAndJumpCarPart(part)
+                        spinAndJumpCarPart(part, true)
                     end
                     car:SetAttribute("SpinJumpActivated", true)
                 end
@@ -181,9 +192,9 @@ local function stopSpinJumpMonitoring()
     end
 end
 
-
 -- Zarządzanie monitorowaniem autofarm
 local autofarmMonitoringActive = false
+local autofarmConnections = {}
 
 local function startAutofarmMonitoring()
     if autofarmMonitoringActive then
@@ -259,7 +270,6 @@ local function stopAutofarmMonitoring()
     end
 end
 
--- Zwrócenie funkcji do zarządzania
 return {
     startSpinJumpMonitoring = startSpinJumpMonitoring,
     stopSpinJumpMonitoring = stopSpinJumpMonitoring,
