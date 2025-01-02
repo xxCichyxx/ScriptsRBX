@@ -14,7 +14,7 @@ local AutoFarm = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCi
 local AutoFarm3 = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/DriveWorld/AutoFarm.txt'))()
 local TabAutoFarms = Window:CreateTab("AutoFarms", "tree-palm")
 local AutoFarm_Toggle = TabAutoFarms:CreateToggle({
-    Name = "AutoFarm v0.1",
+    Name = "AutoFarm Air Highway Vechicle",
     CurrentValue = false,
     Flag = "ToggleAutoFarm",
     Callback = function(Value)
@@ -26,7 +26,7 @@ local AutoFarm_Toggle = TabAutoFarms:CreateToggle({
     end,
 })
 local AutoFarm_Toggle1 = TabAutoFarms:CreateToggle({
-    Name = "AutoFarm v0.2",
+    Name = "AutoFarm Glitching Ground Vechicle",
     CurrentValue = false,
     Flag = "ToggleAutoFarm",
     Callback = function(Value)
@@ -39,7 +39,7 @@ local AutoFarm_Toggle1 = TabAutoFarms:CreateToggle({
 })
 
 local AutoFarm_Toggle2 = TabAutoFarms:CreateToggle({
-    Name = "AutoFarm v0.3",
+    Name = "AutoFarm Falling Down Vechicle",
     CurrentValue = false,
     Flag = "ToggleAutoFarm",
     Callback = function(Value)
