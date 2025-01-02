@@ -33,12 +33,16 @@ local function spinAndJumpCarPart(object)
         bodyVelocity.Velocity = Vector3.new(0, 200, 0)
         bodyVelocity.Parent = object
 
+        object:SetAttribute("SpinJumpOriginalCFrame", object.CFrame)
+
         task.spawn(function()
             local originalPosition = object.Position
-            while true do
+            while object:GetAttribute("SpinJumpActive") do
                 object.CFrame = CFrame.new(originalPosition + Vector3.new(0, math.sin(tick() * 10) * 0.5, 0))
                 task.wait(0.03)
             end
+            -- Przywracanie pierwotnej pozycji
+            object.CFrame = object:GetAttribute("SpinJumpOriginalCFrame")
         end)
     else
         warn(object.Name .. " nie jest typu BasePart i został pominięty.")
@@ -46,17 +50,12 @@ local function spinAndJumpCarPart(object)
 end
 
 -- Funkcja autofarm
-local function startAutofarm(parts, player)
+local function startAutofarm(parts)
     local autofarmActive = true
     local maxHeight = 380
     local minHeight = 180
     local fallVelocity = -55
     local delayBetweenMoves = 0.05
-
-    local originalStates = {}
-    for _, part in pairs(parts) do
-        originalStates[part] = part.CFrame
-    end
 
     local function teleportPart(part)
         if not part:IsDescendantOf(workspace) then return end
@@ -79,16 +78,11 @@ local function startAutofarm(parts, player)
 
     return function()
         autofarmActive = false
-        for part, cframe in pairs(originalStates) do
-            part.CFrame = cframe
-        end
     end
 end
 
 -- Zarządzanie monitorowaniem obracania/skakania
 local spinJumpMonitoringActive = false
-local spinJumpConnections = {}
-
 local function startSpinJumpMonitoring()
     if spinJumpMonitoringActive then
         warn("SpinJump monitoring już działa!")
@@ -108,11 +102,13 @@ local function startSpinJumpMonitoring()
             car:SetAttribute("SpinJumpActivated", false)
         end
 
-        local seats = car:FindFirstChild("Seats")
-        local driverSeat = seats and seats:FindFirstChild("Driver")
+        local parts = getSpecificParts(car)
+        local driverSeat = car:FindFirstChild("Seats") and car.Seats:FindFirstChild("Driver")
+
         if driverSeat and driverSeat.Occupant then
-            local parts = getSpecificParts(car)
+            -- Uruchomienie natychmiast dla zajętego pojazdu
             for _, part in pairs(parts) do
+                part:SetAttribute("SpinJumpActive", true)
                 spinAndJumpCarPart(part)
             end
             car:SetAttribute("SpinJumpActivated", true)
@@ -122,10 +118,19 @@ end
 
 local function stopSpinJumpMonitoring()
     spinJumpMonitoringActive = false
-    for _, connection in pairs(spinJumpConnections) do
-        connection:Disconnect()
+
+    local carsFolder = workspace:FindFirstChild("Cars")
+    if carsFolder then
+        for _, car in pairs(carsFolder:GetChildren()) do
+            if car:GetAttribute("SpinJumpActivated") then
+                local parts = getSpecificParts(car)
+                for _, part in pairs(parts) do
+                    part:SetAttribute("SpinJumpActive", false)
+                end
+                car:SetAttribute("SpinJumpActivated", false)
+            end
+        end
     end
-    spinJumpConnections = {}
 end
 
 -- Zarządzanie monitorowaniem autofarm
@@ -139,16 +144,18 @@ local function startAutofarmMonitoring()
     end
 
     autofarmMonitoringActive = true
+
     for _, car in pairs(workspace.Cars:GetChildren()) do
         if not car:GetAttribute("AutofarmActivated") then
             car:SetAttribute("AutofarmActivated", false)
         end
 
-        local seats = car:FindFirstChild("Seats")
-        local driverSeat = seats and seats:FindFirstChild("Driver")
+        local parts = getSpecificParts(car)
+        local driverSeat = car:FindFirstChild("Seats") and car.Seats:FindFirstChild("Driver")
+
         if driverSeat and driverSeat.Occupant then
-            local parts = getSpecificParts(car)
-            stopAutofarmFunc = startAutofarm(parts, game.Players.LocalPlayer)
+            -- Uruchomienie natychmiast dla zajętego pojazdu
+            stopAutofarmFunc = startAutofarm(parts)
             car:SetAttribute("AutofarmActivated", true)
         end
     end
