@@ -100,17 +100,52 @@ local function startSpinJumpMonitoring()
             car:SetAttribute("SpinJumpActivated", false)
         end
 
-        local parts = getSpecificParts(car)
-        local driverSeat = car:FindFirstChild("Seats") and car.Seats:FindFirstChild("Driver")
+        local seats = car:FindFirstChild("Seats")
+        local driverSeat = seats and seats:FindFirstChild("Driver")
+        if driverSeat then
+            -- Monitoruj zmiany Occupant, aby reagować na wsiadanie gracza
+            local connection = driverSeat:GetPropertyChangedSignal("Occupant"):Connect(function()
+                local occupant = driverSeat.Occupant
+                if occupant then
+                    local character = occupant.Parent
+                    local player = game.Players:GetPlayerFromCharacter(character)
+                    if player and player == game.Players.LocalPlayer and not car:GetAttribute("SpinJumpActivated") then
+                        -- Rozpocznij SpinJump, jeśli monitorowanie jest aktywne
+                        local parts = getSpecificParts(car)
+                        for _, part in pairs(parts) do
+                            -- Zapisz oryginalny CFrame, jeśli jeszcze nie zapisano
+                            if not part:GetAttribute("SpinJumpOriginalCFrame") then
+                                part:SetAttribute("SpinJumpOriginalCFrame", part.CFrame)
+                            end
+                            spinAndJumpCarPart(part)
+                        end
+                        car:SetAttribute("SpinJumpActivated", true)
+                    end
+                end
+            end)
 
-        if driverSeat and driverSeat.Occupant then
-            for _, part in pairs(parts) do
-                part:SetAttribute("SpinJumpActive", true)
-                spinAndJumpCarPart(part, true)
+            table.insert(spinJumpConnections, connection)
+
+            -- Jeśli gracz już siedzi w samochodzie, natychmiast aktywuj
+            if driverSeat.Occupant then
+                local occupant = driverSeat.Occupant
+                local character = occupant.Parent
+                local player = game.Players:GetPlayerFromCharacter(character)
+                if player and player == game.Players.LocalPlayer and not car:GetAttribute("SpinJumpActivated") then
+                    local parts = getSpecificParts(car)
+                    for _, part in pairs(parts) do
+                        if not part:GetAttribute("SpinJumpOriginalCFrame") then
+                            part:SetAttribute("SpinJumpOriginalCFrame", part.CFrame)
+                        end
+                        spinAndJumpCarPart(part)
+                    end
+                    car:SetAttribute("SpinJumpActivated", true)
+                end
             end
-            car:SetAttribute("SpinJumpActivated", true)
         end
     end
+
+    print("Monitoring SpinJump aktywowany.")
 end
 
 local function stopSpinJumpMonitoring()
@@ -146,6 +181,7 @@ local function stopSpinJumpMonitoring()
     end
 end
 
+
 -- Zarządzanie monitorowaniem autofarm
 local autofarmMonitoringActive = false
 
@@ -157,23 +193,59 @@ local function startAutofarmMonitoring()
 
     autofarmMonitoringActive = true
 
-    for _, car in pairs(workspace.Cars:GetChildren()) do
+    local carsFolder = workspace:FindFirstChild("Cars")
+    if not carsFolder then
+        warn("Folder 'Cars' nie istnieje w workspace!")
+        return
+    end
+
+    for _, car in pairs(carsFolder:GetChildren()) do
         if not car:GetAttribute("AutofarmActivated") then
             car:SetAttribute("AutofarmActivated", false)
         end
 
-        local parts = getSpecificParts(car)
         local driverSeat = car:FindFirstChild("Seats") and car.Seats:FindFirstChild("Driver")
 
-        if driverSeat and driverSeat.Occupant then
-            startAutofarm(parts, true)
-            car:SetAttribute("AutofarmActivated", true)
+        if driverSeat then
+            -- Monitoruj zmiany Occupant
+            local connection = driverSeat:GetPropertyChangedSignal("Occupant"):Connect(function()
+                local occupant = driverSeat.Occupant
+                if occupant then
+                    local character = occupant.Parent
+                    local player = game.Players:GetPlayerFromCharacter(character)
+                    if player and player == game.Players.LocalPlayer and not car:GetAttribute("AutofarmActivated") then
+                        local parts = getSpecificParts(car)
+                        startAutofarm(parts, true)
+                        car:SetAttribute("AutofarmActivated", true)
+                    end
+                end
+            end)
+
+            table.insert(autofarmConnections, connection)
+
+            -- Natychmiastowa aktywacja dla zajętych samochodów
+            if driverSeat.Occupant then
+                local occupant = driverSeat.Occupant
+                local character = occupant.Parent
+                local player = game.Players:GetPlayerFromCharacter(character)
+                if player and player == game.Players.LocalPlayer and not car:GetAttribute("AutofarmActivated") then
+                    local parts = getSpecificParts(car)
+                    startAutofarm(parts, true)
+                    car:SetAttribute("AutofarmActivated", true)
+                end
+            end
         end
     end
 end
 
 local function stopAutofarmMonitoring()
     autofarmMonitoringActive = false
+
+    -- Odłącz wszystkie połączenia monitorujące
+    for _, connection in pairs(autofarmConnections) do
+        connection:Disconnect()
+    end
+    autofarmConnections = {}
 
     local carsFolder = workspace:FindFirstChild("Cars")
     if carsFolder then
