@@ -1,25 +1,4 @@
--- Funkcja do uzyskania specyficznych części samochodu
-local function getSpecificParts(car)
-    local parts = {}
-    local function addPartsFromFolder(folder)
-        if folder and folder:IsA("Folder") then
-            for _, child in pairs(folder:GetChildren()) do
-                if child:IsA("BasePart") then
-                    table.insert(parts, child)
-                end
-            end
-        end
-    end
-    local hitbox = car:FindFirstChild("Hitbox")
-    local wheels = car:FindFirstChild("Wheels")
-    local main = car:FindFirstChild("Main")
-    if hitbox then addPartsFromFolder(hitbox) end
-    if wheels then addPartsFromFolder(wheels) end
-    if main and main:IsA("BasePart") then table.insert(parts, main) end
-    return parts
-end
-
--- Funkcja do uruchamiania autofarm
+-- Funkcja do uruchomienia autofarm
 local function startAutofarm(parts, player)
     local autofarmActive = true
     local maxHeight = 380
@@ -48,7 +27,7 @@ local function startAutofarm(parts, player)
     end
 end
 
--- Monitorowanie Autofarm
+-- Monitorowanie autofarm
 local autofarmMonitoringActive = false
 local stopAutofarmFunc = nil
 
@@ -99,12 +78,6 @@ local function startAutofarmMonitoring()
                                 end
                             end
                         end
-                    else
-                        -- Jeśli gracz wysiadł, resetujemy stan
-                        if car:GetAttribute("AutofarmActivated") then
-                            stopAutofarmFunc()
-                            car:SetAttribute("AutofarmActivated", false)
-                        end
                     end
                 end)
             end
@@ -150,37 +123,50 @@ local spinJumpMonitoringActive = false
 local spinJumpConnections = {}
 
 local function startSpinJumpMonitoring()
+    print("Rozpoczynanie SpinJump Monitoring")
+
     if spinJumpMonitoringActive then
         warn("SpinJump monitoring już działa!")
         return
     end
 
+    local carsFolder = workspace:FindFirstChild("Cars")
+    if not carsFolder then
+        warn("Folder 'Cars' nie istnieje w workspace!")
+        return
+    end
+
     spinJumpMonitoringActive = true
 
-    for _, car in pairs(workspace.Cars:GetChildren()) do
+    for _, car in pairs(carsFolder:GetChildren()) do
         if not car:GetAttribute("SpinJumpActivated") then
             car:SetAttribute("SpinJumpActivated", false)
         end
 
         local seats = car:FindFirstChild("Seats")
-        if seats then
-            local driverSeat = seats:FindFirstChild("Driver")
-            if driverSeat then
-                -- Sprawdzamy, czy gracz już siedzi w samochodzie
-                local occupant = driverSeat.Occupant
-                if occupant then
-                    local character = occupant.Parent
-                    if character then
-                        local player = game.Players:GetPlayerFromCharacter(character)
-                        if player and player == game.Players.LocalPlayer then
-                            if not car:GetAttribute("SpinJumpActivated") then
-                                local parts = getSpecificParts(car)
-                                for _, part in pairs(parts) do
-                                    spinAndJumpCarPart(part)
-                                end
-                                car:SetAttribute("SpinJumpActivated", true)
-                            end
+        if not seats then
+            warn("Samochód " .. car.Name .. " nie ma folderu 'Seats'.")
+            return
+        end
+        local driverSeat = seats:FindFirstChild("Driver")
+        if not driverSeat then
+            warn("Samochód " .. car.Name .. " nie ma siedzenia 'Driver'.")
+            return
+        end
+
+        -- Sprawdzanie, czy gracz już siedzi w samochodzie
+        local occupant = driverSeat.Occupant
+        if occupant then
+            local character = occupant.Parent
+            if character then
+                local player = game.Players:GetPlayerFromCharacter(character)
+                if player and player == game.Players.LocalPlayer then
+                    if not car:GetAttribute("SpinJumpActivated") then
+                        local parts = getSpecificParts(car)
+                        for _, part in pairs(parts) do
+                            spinAndJumpCarPart(part)
                         end
+                        car:SetAttribute("SpinJumpActivated", true)
                     end
                 end
             end
@@ -209,6 +195,8 @@ local function startSpinJumpMonitoring()
 
         table.insert(spinJumpConnections, connection)
     end
+
+    print("Monitoring SpinJump aktywowany.")
 end
 
 local function stopSpinJumpMonitoring()
@@ -218,7 +206,7 @@ local function stopSpinJumpMonitoring()
     end
     spinJumpConnections = {}
 
-    -- Zatrzymywanie teleportowania i przywracanie normalnego stanu
+    -- Zatrzymanie teleportowania
     for _, car in pairs(workspace.Cars:GetChildren()) do
         local parts = getSpecificParts(car)
         for _, part in pairs(parts) do
@@ -228,9 +216,6 @@ local function stopSpinJumpMonitoring()
                     bodyPart:Destroy()
                 end
             end
-            -- Przywracanie do normalnego stanu jechania
-            part.Velocity = Vector3.new(0, 0, 0)
-            part.RotVelocity = Vector3.new(0, 0, 0)
         end
     end
 end
