@@ -19,32 +19,6 @@ local function getSpecificParts(car)
     return parts
 end
 
--- Funkcja obracania i skakania części
-local function spinAndJumpCarPart(object)
-    if object:IsA("BasePart") then
-        local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
-        bodyAngularVelocity.MaxTorque = Vector3.new(10000, 10000, 10000)
-        bodyAngularVelocity.AngularVelocity = Vector3.new(0, 100, 0)
-        bodyAngularVelocity.P = 5000
-        bodyAngularVelocity.Parent = object
-
-        local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)
-        bodyVelocity.Velocity = Vector3.new(0, 200, 0)
-        bodyVelocity.Parent = object
-
-        task.spawn(function()
-            local originalPosition = object.Position
-            while true do
-                object.CFrame = CFrame.new(originalPosition + Vector3.new(0, math.sin(tick() * 10) * 0.5, 0))
-                task.wait(0.03)
-            end
-        end)
-    else
-        warn(object.Name .. " nie jest typu BasePart i został pominięty.")
-    end
-end
-
 local function startAutofarm(parts, player)
     local autofarmActive = true
     local maxHeight = 380
