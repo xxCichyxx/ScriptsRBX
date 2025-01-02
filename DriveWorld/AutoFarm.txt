@@ -20,64 +20,62 @@ local function getSpecificParts(car)
 end
 
 -- Funkcja obracania i skakania części
-local function spinAndJumpCarPart(object)
-    if object:IsA("BasePart") then
-        local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
-        bodyAngularVelocity.MaxTorque = Vector3.new(10000, 10000, 10000)
-        bodyAngularVelocity.AngularVelocity = Vector3.new(0, 100, 0)
-        bodyAngularVelocity.P = 5000
-        bodyAngularVelocity.Parent = object
-
+local function spinAndJumpCarPart(part, active)
+    if active then
+        local originalCFrame = part.CFrame
+        part:SetAttribute("SpinJumpOriginalCFrame", originalCFrame)
         local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)
-        bodyVelocity.Velocity = Vector3.new(0, 200, 0)
-        bodyVelocity.Parent = object
-
-        object:SetAttribute("SpinJumpOriginalCFrame", object.CFrame)
+        bodyVelocity.MaxForce = Vector3.new(0, 100000, 0)
+        bodyVelocity.Velocity = Vector3.new(0, 5, 0) -- Płynny ruch w górę
+        bodyVelocity.Parent = part
 
         task.spawn(function()
-            local originalPosition = object.Position
-            while object:GetAttribute("SpinJumpActive") do
-                object.CFrame = CFrame.new(originalPosition + Vector3.new(0, math.sin(tick() * 10) * 0.5, 0))
+            while part:GetAttribute("SpinJumpActive") do
+                bodyVelocity.Velocity = Vector3.new(0, math.sin(tick() * 5) * 5, 0) -- Ruch sinusoidalny
                 task.wait(0.03)
             end
-            -- Przywracanie pierwotnej pozycji
-            object.CFrame = object:GetAttribute("SpinJumpOriginalCFrame")
+            -- Przywracanie oryginalnej pozycji
+            bodyVelocity:Destroy()
+            part.CFrame = originalCFrame
         end)
     else
-        warn(object.Name .. " nie jest typu BasePart i został pominięty.")
+        part:SetAttribute("SpinJumpActive", false)
     end
 end
 
 -- Funkcja autofarm
-local function startAutofarm(parts)
-    local autofarmActive = true
+local function startAutofarm(parts, active)
     local maxHeight = 380
     local minHeight = 180
-    local fallVelocity = -55
+    local fallVelocity = -10
     local delayBetweenMoves = 0.05
 
     local function teleportPart(part)
         if not part:IsDescendantOf(workspace) then return end
-        part.CFrame = CFrame.new(part.Position.X, maxHeight, part.Position.Z)
-        while part.Position.Y > minHeight and autofarmActive do
-            part.CFrame = CFrame.new(part.Position.X, part.Position.Y + fallVelocity * delayBetweenMoves, part.Position.Z)
-            wait(delayBetweenMoves)
+        if active then
+            part.CFrame = CFrame.new(part.Position.X, maxHeight, part.Position.Z)
+            while part.Position.Y > minHeight and active do
+                part.CFrame = CFrame.new(part.Position.X, part.Position.Y + fallVelocity, part.Position.Z)
+                task.wait(delayBetweenMoves)
+            end
+            part.CFrame = CFrame.new(part.Position.X, maxHeight, part.Position.Z)
+        else
+            part.CFrame = part:GetAttribute("AutofarmOriginalCFrame") or part.CFrame
         end
-        part.CFrame = CFrame.new(part.Position.X, maxHeight, part.Position.Z)
     end
 
     for _, part in pairs(parts) do
-        coroutine.wrap(function()
-            while autofarmActive do
-                teleportPart(part)
-                wait(delayBetweenMoves)
-            end
-        end)()
-    end
-
-    return function()
-        autofarmActive = false
+        if active then
+            part:SetAttribute("AutofarmOriginalCFrame", part.CFrame)
+            coroutine.wrap(function()
+                while active do
+                    teleportPart(part)
+                    task.wait(delayBetweenMoves)
+                end
+            end)()
+        else
+            teleportPart(part)
+        end
     end
 end
 
@@ -106,10 +104,9 @@ local function startSpinJumpMonitoring()
         local driverSeat = car:FindFirstChild("Seats") and car.Seats:FindFirstChild("Driver")
 
         if driverSeat and driverSeat.Occupant then
-            -- Uruchomienie natychmiast dla zajętego pojazdu
             for _, part in pairs(parts) do
                 part:SetAttribute("SpinJumpActive", true)
-                spinAndJumpCarPart(part)
+                spinAndJumpCarPart(part, true)
             end
             car:SetAttribute("SpinJumpActivated", true)
         end
@@ -135,7 +132,6 @@ end
 
 -- Zarządzanie monitorowaniem autofarm
 local autofarmMonitoringActive = false
-local stopAutofarmFunc = nil
 
 local function startAutofarmMonitoring()
     if autofarmMonitoringActive then
@@ -154,8 +150,7 @@ local function startAutofarmMonitoring()
         local driverSeat = car:FindFirstChild("Seats") and car.Seats:FindFirstChild("Driver")
 
         if driverSeat and driverSeat.Occupant then
-            -- Uruchomienie natychmiast dla zajętego pojazdu
-            stopAutofarmFunc = startAutofarm(parts)
+            startAutofarm(parts, true)
             car:SetAttribute("AutofarmActivated", true)
         end
     end
@@ -163,8 +158,16 @@ end
 
 local function stopAutofarmMonitoring()
     autofarmMonitoringActive = false
-    if stopAutofarmFunc then
-        stopAutofarmFunc()
+
+    local carsFolder = workspace:FindFirstChild("Cars")
+    if carsFolder then
+        for _, car in pairs(carsFolder:GetChildren()) do
+            if car:GetAttribute("AutofarmActivated") then
+                local parts = getSpecificParts(car)
+                startAutofarm(parts, false)
+                car:SetAttribute("AutofarmActivated", false)
+            end
+        end
     end
 end
 
