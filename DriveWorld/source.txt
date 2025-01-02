@@ -11,12 +11,10 @@ local Window = Rayfield:CreateWindow({
     KeySystem = false,
 })
 local AutoFarm = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/DriveWorld/DriveWorldairfarm.txt'))()
-local AutoFarm1 = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/DriveWorld/DriveWorldairfarm1.txt'))()
-local AutoFarm2 = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/DriveWorld/DriveWorlddriftfram1.txt'))()
 local AutoFarm3 = loadstring(game:HttpGet('https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/DriveWorld/AutoFarm.txt'))()
 local TabAutoFarms = Window:CreateTab("AutoFarms", "tree-palm")
 local AutoFarm_Toggle = TabAutoFarms:CreateToggle({
-    Name = "AutoFarm Air 0.1",
+    Name = AutoFarm v0.1",
     CurrentValue = false,
     Flag = "ToggleAutoFarm",
     Callback = function(Value)
@@ -27,35 +25,8 @@ local AutoFarm_Toggle = TabAutoFarms:CreateToggle({
         end
     end,
 })
-
-local AutoFarm_Toggle2 = TabAutoFarms:CreateToggle({
-    Name = "AutoFarm Air 0.2",
-    CurrentValue = false,
-    Flag = "ToggleAutoFarm",
-    Callback = function(Value)
-        if Value then
-        AutoFarm1.startMonitoring()  -- Rozpoczynamy AutoFarm
-        else
-        AutoFarm1.stopMonitoring()  -- Zatrzymujemy AutoFarm
-        end
-    end,
-})
-
-local AutoFarm_Toggle3 = TabAutoFarms:CreateToggle({
-    Name = "AutoFarm ? 0.1",
-    CurrentValue = false,
-    Flag = "ToggleAutoFarm",
-    Callback = function(Value)
-        if Value then
-        AutoFarm2.startMonitoring()  -- Rozpoczynamy AutoFarm
-        else
-        AutoFarm2.stopMonitoring()  -- Zatrzymujemy AutoFarm
-        end
-    end,
-})
-
-local AutoFarm_Toggle4 = TabAutoFarms:CreateToggle({
-    Name = "AutoFarm ? 0.1",
+local AutoFarm_Toggle1 = TabAutoFarms:CreateToggle({
+    Name = "AutoFarm v0.2",
     CurrentValue = false,
     Flag = "ToggleAutoFarm",
     Callback = function(Value)
@@ -67,8 +38,8 @@ local AutoFarm_Toggle4 = TabAutoFarms:CreateToggle({
     end,
 })
 
-local AutoFarm_Toggle5 = TabAutoFarms:CreateToggle({
-    Name = "AutoFarm ? 0.1",
+local AutoFarm_Toggle2 = TabAutoFarms:CreateToggle({
+    Name = "AutoFarm v0.3",
     CurrentValue = false,
     Flag = "ToggleAutoFarm",
     Callback = function(Value)
