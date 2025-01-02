@@ -122,8 +122,24 @@ local function stopSpinJumpMonitoring()
             if car:GetAttribute("SpinJumpActivated") then
                 local parts = getSpecificParts(car)
                 for _, part in pairs(parts) do
+                    -- Dezaktywuj flagę aktywności
                     part:SetAttribute("SpinJumpActive", false)
+
+                    -- Usuń wszystkie elementy BodyVelocity i BodyAngularVelocity
+                    for _, child in pairs(part:GetChildren()) do
+                        if child:IsA("BodyMover") or child:IsA("BodyVelocity") or child:IsA("BodyAngularVelocity") then
+                            child:Destroy()
+                        end
+                    end
+
+                    -- Przywróć oryginalny CFrame
+                    local originalCFrame = part:GetAttribute("SpinJumpOriginalCFrame")
+                    if originalCFrame then
+                        part.CFrame = originalCFrame
+                    end
                 end
+
+                -- Zresetuj atrybut aktywacji
                 car:SetAttribute("SpinJumpActivated", false)
             end
         end
