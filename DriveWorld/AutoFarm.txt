@@ -74,7 +74,6 @@ local function startAutofarm(parts, player)
     end
 end
 
--- Zarządzanie monitorowaniem obracania/skakania
 local spinJumpMonitoringActive = false
 local spinJumpConnections = {}
 
@@ -110,24 +109,37 @@ local function startSpinJumpMonitoring()
             return
         end
 
+        -- Sprawdzamy, czy gracz już siedzi w samochodzie
+        local occupant = driverSeat.Occupant
+        if occupant then
+            local character = occupant.Parent
+            if character then
+                local player = game.Players:GetPlayerFromCharacter(character)
+                if player and player == game.Players.LocalPlayer then
+                    local parts = getSpecificParts(car)
+                    for _, part in pairs(parts) do
+                        spinAndJumpCarPart(part)
+                    end
+                    car:SetAttribute("SpinJumpActivated", true)
+                end
+            end
+        end
+
         -- Monitorowanie zmian w siedzeniu kierowcy
         local connection = driverSeat:GetPropertyChangedSignal("Occupant"):Connect(function()
             if not spinJumpMonitoringActive then return end
             local occupant = driverSeat.Occupant
             if occupant then
                 local character = occupant.Parent
-                if not character then return end
-                local player = game.Players:GetPlayerFromCharacter(character)
-                if player and player == game.Players.LocalPlayer then
-                    if not car:GetAttribute("SpinJumpActivated") then
-                        local parts = getSpecificParts(car)
-                        for _, part in pairs(parts) do
-                            spinAndJumpCarPart(part)
-                        end
-                        car:SetAttribute("SpinJumpActivated", true)
-                        driverSeat:GetPropertyChangedSignal("Occupant"):Wait()
-                        if not driverSeat.Occupant then
-                            car:SetAttribute("SpinJumpActivated", false)
+                if character then
+                    local player = game.Players:GetPlayerFromCharacter(character)
+                    if player and player == game.Players.LocalPlayer then
+                        if not car:GetAttribute("SpinJumpActivated") then
+                            local parts = getSpecificParts(car)
+                            for _, part in pairs(parts) do
+                                spinAndJumpCarPart(part)
+                            end
+                            car:SetAttribute("SpinJumpActivated", true)
                         end
                     end
                 end
@@ -146,9 +158,29 @@ local function stopSpinJumpMonitoring()
         connection:Disconnect()
     end
     spinJumpConnections = {}
+
+    -- Zatrzymywanie całego skakania i obracania
+    for _, car in pairs(workspace.Cars:GetChildren()) do
+        if car:GetAttribute("SpinJumpActivated") then
+            local parts = getSpecificParts(car)
+            for _, part in pairs(parts) do
+                -- Usuwamy siły skakania i obracania
+                local bodyAngularVelocity = part:FindFirstChildOfClass("BodyAngularVelocity")
+                if bodyAngularVelocity then
+                    bodyAngularVelocity:Destroy()
+                end
+                local bodyVelocity = part:FindFirstChildOfClass("BodyVelocity")
+                if bodyVelocity then
+                    bodyVelocity:Destroy()
+                end
+            end
+            car:SetAttribute("SpinJumpActivated", false)
+        end
+    end
+
+    print("Monitoring SpinJump zatrzymany.")
 end
 
--- Zarządzanie monitorowaniem autofarm
 local autofarmMonitoringActive = false
 local stopAutofarmFunc = nil
 
@@ -167,19 +199,35 @@ local function startAutofarmMonitoring()
         if seats then
             local driverSeat = seats:FindFirstChild("Driver")
             if driverSeat then
-                driverSeat:GetPropertyChangedSignal("Occupant"):Connect(function()
-                    if not autofarmMonitoringActive then return end
-                    local occupant = driverSeat.Occupant
-                    if occupant then
-                        local player = game.Players:GetPlayerFromCharacter(occupant.Parent)
+                -- Sprawdzamy, czy gracz już siedzi w samochodzie
+                local occupant = driverSeat.Occupant
+                if occupant then
+                    local character = occupant.Parent
+                    if character then
+                        local player = game.Players:GetPlayerFromCharacter(character)
                         if player and player == game.Players.LocalPlayer then
                             if not car:GetAttribute("AutofarmActivated") then
                                 local parts = getSpecificParts(car)
                                 stopAutofarmFunc = startAutofarm(parts, player)
                                 car:SetAttribute("AutofarmActivated", true)
-                                driverSeat:GetPropertyChangedSignal("Occupant"):Wait()
-                                if not driverSeat.Occupant then
-                                    stopAutofarmFunc()
+                            end
+                        end
+                    end
+                end
+
+                -- Monitorowanie zmian w siedzeniu kierowcy
+                driverSeat:GetPropertyChangedSignal("Occupant"):Connect(function()
+                    if not autofarmMonitoringActive then return end
+                    local occupant = driverSeat.Occupant
+                    if occupant then
+                        local character = occupant.Parent
+                        if character then
+                            local player = game.Players:GetPlayerFromCharacter(character)
+                            if player and player == game.Players.LocalPlayer then
+                                if not car:GetAttribute("AutofarmActivated") then
+                                    local parts = getSpecificParts(car)
+                                    stopAutofarmFunc = startAutofarm(parts, player)
+                                    car:SetAttribute("AutofarmActivated", true)
                                 end
                             end
                         end
