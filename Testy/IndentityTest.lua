@@ -1,0 +1,1 @@
+loadstring(game:HttpGet('https://raw.githubusercontent.com/InfernusScripts/Executor-Tests/main/Identity/Test.lua'))()
