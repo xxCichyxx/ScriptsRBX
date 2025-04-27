@@ -17,9 +17,11 @@ function Library:CreateWindow(config)
 
     -- Główne okno
     local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 450, 0, 500)
-    mainFrame.Position = UDim2.new(0.5, -225, 0.5, -250)
+    mainFrame.Size = UDim2.new(0, 400, 0, 350)
+    mainFrame.Position = UDim2.new(0.5, -200, 0.5, -175)
     mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    mainFrame.Active = true
+    mainFrame.Draggable = true
     mainFrame.Parent = screenGui
 
     -- Zaokrąglone rogi
@@ -29,7 +31,7 @@ function Library:CreateWindow(config)
 
     -- Tytuł
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, 0, 0, 50)
+    titleLabel.Size = UDim2.new(1, 0, 0, 40)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = config.Title or "Library UI"
     titleLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -37,22 +39,35 @@ function Library:CreateWindow(config)
     titleLabel.TextSize = 24
     titleLabel.Parent = mainFrame
 
-    -- Lista Tabów (przyciski do zmiany tabów)
+    -- Background pod tytuł/taby (drag bar)
+    local dragBar = Instance.new("Frame")
+    dragBar.Size = UDim2.new(1, 0, 0, 60)
+    dragBar.Position = UDim2.new(0, 0, 0, 40)
+    dragBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    dragBar.Parent = mainFrame
+
+    local dragBarCorner = Instance.new("UICorner")
+    dragBarCorner.CornerRadius = UDim.new(0, 8)
+    dragBarCorner.Parent = dragBar
+
+    -- Holder na przyciski tabów
     local tabButtonsHolder = Instance.new("Frame")
-    tabButtonsHolder.Size = UDim2.new(1, 0, 0, 40)
-    tabButtonsHolder.Position = UDim2.new(0, 0, 0, 50)
+    tabButtonsHolder.Size = UDim2.new(1, -20, 0, 30)
+    tabButtonsHolder.Position = UDim2.new(0, 10, 0, 45)
     tabButtonsHolder.BackgroundTransparency = 1
     tabButtonsHolder.Parent = mainFrame
 
     local tabButtonLayout = Instance.new("UIListLayout")
     tabButtonLayout.FillDirection = Enum.FillDirection.Horizontal
     tabButtonLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tabButtonLayout.Padding = UDim.new(0, 5)
+    tabButtonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     tabButtonLayout.Parent = tabButtonsHolder
 
     -- Holder na zawartość tabów
     local tabContentHolder = Instance.new("Frame")
-    tabContentHolder.Size = UDim2.new(1, 0, 1, -90)
-    tabContentHolder.Position = UDim2.new(0, 0, 0, 90)
+    tabContentHolder.Size = UDim2.new(1, -20, 1, -110)
+    tabContentHolder.Position = UDim2.new(0, 10, 0, 100)
     tabContentHolder.BackgroundTransparency = 1
     tabContentHolder.Parent = mainFrame
 
@@ -61,20 +76,38 @@ function Library:CreateWindow(config)
     local window = {}
 
     function window:CreateTab(tabName)
+        -- Tworzenie przycisku Taba
         local tabButton = Instance.new("TextButton")
         tabButton.Size = UDim2.new(0, 100, 1, 0)
-        tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        tabButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
         tabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
         tabButton.Text = tabName
         tabButton.Font = Enum.Font.GothamBold
         tabButton.TextSize = 14
         tabButton.Parent = tabButtonsHolder
 
-        local tabFrame = Instance.new("Frame")
+        local tabButtonCorner = Instance.new("UICorner")
+        tabButtonCorner.CornerRadius = UDim.new(0, 8)
+        tabButtonCorner.Parent = tabButton
+
+        -- Tworzenie ScrollingFrame dla zawartości tabów
+        local tabFrame = Instance.new("ScrollingFrame")
         tabFrame.Size = UDim2.new(1, 0, 1, 0)
+        tabFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+        tabFrame.ScrollBarThickness = 5
+        tabFrame.ScrollingDirection = Enum.ScrollingDirection.Y
         tabFrame.BackgroundTransparency = 1
         tabFrame.Visible = false
         tabFrame.Parent = tabContentHolder
+
+        -- Smooth Scrolling
+        local UIS = game:GetService("UserInputService")
+        tabFrame.MouseWheelForward:Connect(function()
+            tabFrame.CanvasPosition = tabFrame.CanvasPosition - Vector2.new(0, 30)
+        end)
+        tabFrame.MouseWheelBackward:Connect(function()
+            tabFrame.CanvasPosition = tabFrame.CanvasPosition + Vector2.new(0, 30)
+        end)
 
         local layout = Instance.new("UIListLayout")
         layout.Padding = UDim.new(0, 5)
@@ -84,7 +117,7 @@ function Library:CreateWindow(config)
         -- Funkcja wyboru Taba
         tabButton.MouseButton1Click:Connect(function()
             for _, v in pairs(tabContentHolder:GetChildren()) do
-                if v:IsA("Frame") then
+                if v:IsA("ScrollingFrame") then
                     v.Visible = false
                 end
             end
@@ -118,6 +151,11 @@ function Library:CreateWindow(config)
 
             button.MouseButton1Click:Connect(function()
                 callback()
+            end)
+
+            -- Update Scroll Size
+            layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                tabFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
             end)
         end
 
