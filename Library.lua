@@ -212,10 +212,17 @@ function Library:CreateWindow(config)
             local newX = math.clamp(input.Position.X - sliderBar.AbsolutePosition.X, 0, sliderBar.AbsoluteSize.X)
             sliderIndicator.Position = UDim2.new(0, newX, 0, -7)
             local value = math.floor((newX / sliderBar.AbsoluteSize.X) * (max - min) + min)
-            callback(value)
+            callback(value)  -- Call the provided callback with the updated value
         end
     end)
+
+    -- Update Slider Bar CanvasSize for scrolling
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 5)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Parent = tabFrame
 end
+
 
 function window:CreateCheckbox(label, default, callback)
     -- Checkbox Frame
