@@ -175,7 +175,7 @@ function Library:CreateWindow(config)
 
             -- Minimalna przestrzeń po nagłówku
             local spacer = Instance.new("Frame")
-            spacer.Size = UDim2.new(1, 0, 0, 3)  -- Zmniejszona przestrzeń (3 px)
+            spacer.Size = UDim2.new(1, 0, 0, 0)  -- Zmniejszona przestrzeń (3 px)
             spacer.BackgroundTransparency = 1
             spacer.Parent = tabFrame
         end
