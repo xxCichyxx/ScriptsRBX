@@ -164,18 +164,18 @@ function Library:CreateWindow(config)
         -- Funkcja do tworzenia nagłówków z przestrzenią
         function window:CreateNapis(napisText)
             local headerLabel = Instance.new("TextLabel")
-            headerLabel.Size = UDim2.new(1, 0, 0, 30)  -- Wysokość nagłówka
+            headerLabel.Size = UDim2.new(1, 0, 0, 20)  -- Zmniejszamy wysokość nagłówka
             headerLabel.BackgroundTransparency = 1
             headerLabel.Text = napisText
             headerLabel.TextColor3 = Color3.new(1, 1, 1)
             headerLabel.Font = Enum.Font.Gotham
-            headerLabel.TextSize = 18
+            headerLabel.TextSize = 14  -- Zmniejszamy rozmiar czcionki
             headerLabel.TextXAlignment = Enum.TextXAlignment.Left
-            headerLabel.Parent = tabFrame  -- Dodajemy do tabFrame, a nie tabContentHolder
+            headerLabel.Parent = tabFrame  -- Dodajemy do tabFrame
 
-            -- Dodajemy przestrzeń po napisie
+            -- Dodajemy mniejszą przestrzeń po nagłówku
             local spacer = Instance.new("Frame")
-            spacer.Size = UDim2.new(1, 0, 0, 10)  -- Przestrzeń po nagłówku
+            spacer.Size = UDim2.new(1, 0, 0, 5)  -- Zmniejszamy przestrzeń po nagłówku
             spacer.BackgroundTransparency = 1
             spacer.Parent = tabFrame
         end
