@@ -9,6 +9,8 @@ local RunService = game:GetService("RunService")
 function Library:CreateWindow(config)
     local existingGui = PlayerGui:FindFirstChild(config.Name or "MyLibraryUI")
     local mainFrame, screenGui, firstTab, tabContentHolder
+    local initialPosition
+    local savedTabs = {} -- Lista do przechowywania utworzonych tabów
 
     -- Tworzymy GUI tylko, jeśli nie istnieje w PlayerGui
     if existingGui then
@@ -194,14 +196,25 @@ function Library:CreateWindow(config)
     end)
 
     -- Funkcja monitorująca zniknięcie menu i ponowne tworzenie
-    local initialPosition = mainFrame.Position
+    initialPosition = mainFrame.Position
 
     RunService.Heartbeat:Connect(function()
         if not PlayerGui:FindFirstChild(config.Name or "MyLibraryUI") then
             -- Jeśli GUI zostało usunięte, przywróć je
             local newWindow = Library:CreateWindow(config)
-            -- Przypisujemy główną ramkę do nowego obiektu
-            newWindow.mainFrame.Position = initialPosition
+
+            -- Przywracamy zapisane taby
+            for _, tab in pairs(savedTabs) do
+                local newTab = newWindow:CreateTab(tab.name)
+                for _, buttonData in pairs(tab.buttons) do
+                    newTab:CreateButton(buttonData.text, buttonData.callback)
+                end
+            end
+
+            -- Sprawdzamy, czy `mainFrame` został stworzony poprawnie przed przypisaniem pozycji
+            if newWindow.mainFrame then
+                newWindow.mainFrame.Position = initialPosition
+            end
         end
     end)
 
