@@ -24,36 +24,35 @@ function Library:CreateWindow(config)
     mainFrame.Draggable = true
     mainFrame.Parent = screenGui
 
-    -- Zaokrąglone rogi
     local mainCorner = Instance.new("UICorner")
     mainCorner.CornerRadius = UDim.new(0, 12)
     mainCorner.Parent = mainFrame
 
-    -- Tytuł
+    -- Pasek tytułu
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 50)
+    titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    titleBar.Parent = mainFrame
+
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 8)
+    titleCorner.Parent = titleBar
+
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, 0, 0, 40)
+    titleLabel.Size = UDim2.new(1, -20, 1, 0)
+    titleLabel.Position = UDim2.new(0, 10, 0, 0)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = config.Title or "Library UI"
     titleLabel.TextColor3 = Color3.new(1, 1, 1)
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextSize = 24
-    titleLabel.Parent = mainFrame
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = titleBar
 
-    -- Background pod tytuł/taby (drag bar)
-    local dragBar = Instance.new("Frame")
-    dragBar.Size = UDim2.new(1, 0, 0, 60)
-    dragBar.Position = UDim2.new(0, 0, 0, 40)
-    dragBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    dragBar.Parent = mainFrame
-
-    local dragBarCorner = Instance.new("UICorner")
-    dragBarCorner.CornerRadius = UDim.new(0, 8)
-    dragBarCorner.Parent = dragBar
-
-    -- Holder na przyciski tabów
+    -- Holder na taby
     local tabButtonsHolder = Instance.new("Frame")
     tabButtonsHolder.Size = UDim2.new(1, -20, 0, 30)
-    tabButtonsHolder.Position = UDim2.new(0, 10, 0, 45)
+    tabButtonsHolder.Position = UDim2.new(0, 10, 0, 60)
     tabButtonsHolder.BackgroundTransparency = 1
     tabButtonsHolder.Parent = mainFrame
 
@@ -61,17 +60,18 @@ function Library:CreateWindow(config)
     tabButtonLayout.FillDirection = Enum.FillDirection.Horizontal
     tabButtonLayout.SortOrder = Enum.SortOrder.LayoutOrder
     tabButtonLayout.Padding = UDim.new(0, 5)
-    tabButtonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    tabButtonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
     tabButtonLayout.Parent = tabButtonsHolder
 
     -- Holder na zawartość tabów
     local tabContentHolder = Instance.new("Frame")
-    tabContentHolder.Size = UDim2.new(1, -20, 1, -110)
+    tabContentHolder.Size = UDim2.new(1, -20, 1, -100)
     tabContentHolder.Position = UDim2.new(0, 10, 0, 100)
     tabContentHolder.BackgroundTransparency = 1
     tabContentHolder.Parent = mainFrame
 
     local tabs = {}
+    local firstTab = nil
 
     local window = {}
 
@@ -99,8 +99,9 @@ function Library:CreateWindow(config)
         tabFrame.BackgroundTransparency = 1
         tabFrame.Visible = false
         tabFrame.Parent = tabContentHolder
+        tabFrame.ClipsDescendants = true
 
-        -- Smooth Scrolling
+        -- Smooth Scroll
         local UIS = game:GetService("UserInputService")
         tabFrame.MouseWheelForward:Connect(function()
             tabFrame.CanvasPosition = tabFrame.CanvasPosition - Vector2.new(0, 30)
@@ -114,7 +115,6 @@ function Library:CreateWindow(config)
         layout.SortOrder = Enum.SortOrder.LayoutOrder
         layout.Parent = tabFrame
 
-        -- Funkcja wyboru Taba
         tabButton.MouseButton1Click:Connect(function()
             for _, v in pairs(tabContentHolder:GetChildren()) do
                 if v:IsA("ScrollingFrame") then
@@ -128,8 +128,8 @@ function Library:CreateWindow(config)
 
         function tab:CreateButton(buttonText, callback)
             local button = Instance.new("TextButton")
-            button.Size = UDim2.new(1, -10, 0, 40)
-            button.Position = UDim2.new(0, 5, 0, 0)
+            button.Size = UDim2.new(1, -20, 0, 40)
+            button.Position = UDim2.new(0, 10, 0, 0)
             button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             button.TextColor3 = Color3.fromRGB(255, 255, 255)
             button.Text = buttonText
@@ -160,6 +160,15 @@ function Library:CreateWindow(config)
         end
 
         table.insert(tabs, tab)
+
+        -- Jeśli to pierwszy tab -> automatycznie włącz
+        if not firstTab then
+            firstTab = tabFrame
+            task.defer(function()
+                tabButton:FireMouseButton1Click()
+            end)
+        end
+
         return tab
     end
 
