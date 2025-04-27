@@ -6,10 +6,13 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 function Library:CreateWindow(config)
+    -- Tworzymy GUI tylko, jeśli nie istnieje w PlayerGui
     local existingGui = PlayerGui:FindFirstChild(config.Name or "MyLibraryUI")
     if existingGui then
-        existingGui:Destroy()
+        existingGui:Destroy() -- Upewniamy się, że nie ma starego GUI
     end
+
+    -- Tworzymy nowe GUI
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = config.Name or "MyLibraryUI"
     screenGui.Parent = PlayerGui
@@ -27,7 +30,7 @@ function Library:CreateWindow(config)
     mainCorner.CornerRadius = UDim.new(0, 12)
     mainCorner.Parent = mainFrame
 
-    -- Pasek tytułu
+    -- Pasek tytułowy
     local titleBar = Instance.new("Frame")
     titleBar.Size = UDim2.new(1, 0, 0, 50)
     titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -187,7 +190,16 @@ function Library:CreateWindow(config)
         end
     end)
 
+    -- Funkcja monitorująca zniknięcie menu i ponowne tworzenie
+    game:GetService("RunService").Heartbeat:Connect(function()
+        if not PlayerGui:FindFirstChild(config.Name or "MyLibraryUI") then
+            -- Jeśli GUI zostało usunięte, przywróć je
+            Library:CreateWindow(config)
+        end
+    end)
+
     return window
 end
 
 return Library
+
