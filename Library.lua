@@ -1,7 +1,7 @@
 local Library = {}
 
 local Players = game:GetService("Players")
-local PlayerGui = game:GetService("StarterGui")
+local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
