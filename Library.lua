@@ -1,24 +1,25 @@
 local Library = {}
 
 local Players = game:GetService("Players")
-local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 -- Funkcja do tworzenia GUI
 function Library:CreateWindow(config)
-    -- Funkcja pomocnicza do tworzenia GUI, aby nie było usuwane przy śmierci
+    -- Funkcja pomocnicza do tworzenia GUI, które będzie trwałe po resecie
     local function createGui()
-        local existingGui = PlayerGui:FindFirstChild(config.Name or "MyLibraryUI")
+        -- Sprawdzamy, czy GUI już istnieje w StarterGui
+        local existingGui = StarterGui:FindFirstChild(config.Name or "MyLibraryUI")
         if existingGui then
-            -- Jeśli GUI już istnieje, nie tworzysz nowego
+            -- Jeśli GUI już istnieje, zwróć je
             return existingGui
         end
 
         -- Tworzymy główne GUI
         local screenGui = Instance.new("ScreenGui")
         screenGui.Name = config.Name or "MyLibraryUI"
-        screenGui.Parent = PlayerGui
+        screenGui.Parent = StarterGui
 
         -- Główne okno
         local mainFrame = Instance.new("Frame")
@@ -203,7 +204,8 @@ function Library:CreateWindow(config)
     Players.LocalPlayer.CharacterAdded:Connect(function(character)
         -- Przypisujemy GUI ponownie po dodaniu nowej postaci
         if not PlayerGui:FindFirstChild(screenGui.Name) then
-            createGui()
+            -- Przenosimy GUI z StarterGui do PlayerGui
+            screenGui.Parent = PlayerGui
         end
     end)
 
