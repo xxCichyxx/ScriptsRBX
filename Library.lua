@@ -2,6 +2,8 @@ local Library = {}
 
 local Players = game:GetService("Players")
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 function Library:CreateWindow(config)
     -- Usuwanie starego GUI jeśli istnieje
@@ -131,7 +133,7 @@ function Library:CreateWindow(config)
         function tab:CreateButton(buttonText, callback)
             local button = Instance.new("TextButton")
             button.Size = UDim2.new(1, -20, 0, 40)
-            button.Position = UDim2.new(0, 10, 0, 0) -- Przyciski są bezpośrednio pod napisem
+            button.Position = UDim2.new(0, 10, 0, 0)
             button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             button.TextColor3 = Color3.fromRGB(255, 255, 255)
             button.Text = buttonText
@@ -164,18 +166,18 @@ function Library:CreateWindow(config)
         -- Funkcja do tworzenia nagłówków z minimalną przestrzenią
         function window:CreateNapis(napisText)
             local headerLabel = Instance.new("TextLabel")
-            headerLabel.Size = UDim2.new(1, 0, 0, 20)  -- Zwiększamy wysokość nagłówka
+            headerLabel.Size = UDim2.new(1, 0, 0, 20)
             headerLabel.BackgroundTransparency = 1
             headerLabel.Text = napisText
             headerLabel.TextColor3 = Color3.new(1, 1, 1)
             headerLabel.Font = Enum.Font.Gotham
-            headerLabel.TextSize = 14  -- Zmniejszamy rozmiar czcionki
+            headerLabel.TextSize = 14
             headerLabel.TextXAlignment = Enum.TextXAlignment.Left
-            headerLabel.Parent = tabFrame  -- Dodajemy do tabFrame
+            headerLabel.Parent = tabFrame
 
             -- Minimalna przestrzeń po nagłówku
             local spacer = Instance.new("Frame")
-            spacer.Size = UDim2.new(1, 0, 0, -2)  -- Zmniejszona przestrzeń (3 px)
+            spacer.Size = UDim2.new(1, 0, 0, 3)
             spacer.BackgroundTransparency = 1
             spacer.Parent = tabFrame
         end
@@ -192,6 +194,27 @@ function Library:CreateWindow(config)
 
         return tab
     end
+
+    -- Animacja uruchomienia
+    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local goal = {Size = UDim2.new(0, 400, 0, 350), Position = UDim2.new(0.5, -200, 0.5, -175)}
+    local tween = TweenService:Create(mainFrame, tweenInfo, goal)
+    tween:Play()
+
+    -- Zamknięcie/otwarcie menu pod klawiszem 'N'
+    local isMenuVisible = true
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+
+        if input.KeyCode == Enum.KeyCode.N then
+            isMenuVisible = not isMenuVisible
+            if isMenuVisible then
+                mainFrame.Visible = true
+            else
+                mainFrame.Visible = false
+            end
+        end
+    end)
 
     return window
 end
