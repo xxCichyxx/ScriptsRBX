@@ -42,7 +42,7 @@ function Library:CreateWindow(config)
     -- Background pod tytuł/taby (drag bar)
     local dragBar = Instance.new("Frame")
     dragBar.Size = UDim2.new(1, 0, 0, 60)
-    dragBar.Position = UDim2.new(0, 4, 0, 40)
+    dragBar.Position = UDim2.new(0, 0, 0, 40)
     dragBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     dragBar.Parent = mainFrame
 
