@@ -168,9 +168,13 @@ function Library:CreateWindow(config)
             headerLabel.Font = Enum.Font.Gotham
             headerLabel.TextSize = 18
             headerLabel.TextXAlignment = Enum.TextXAlignment.Left
-            headerLabel.Parent = tabContentHolder
-        
-            return headerLabel  -- Zwracamy utworzony nagłówek, jeśli chcesz z niego korzystać w przyszłości
+            headerLabel.Parent = tabFrame  -- Dodajemy do tabFrame, a nie tabContentHolder
+
+            -- Dodajemy przestrzeń po napisie
+            local spacer = Instance.new("Frame")
+            spacer.Size = UDim2.new(1, 0, 0, 10)  -- Przestrzeń po nagłówku
+            spacer.BackgroundTransparency = 1
+            spacer.Parent = tabFrame
         end
 
         table.insert(tabs, tab)
