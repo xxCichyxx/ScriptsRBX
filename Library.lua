@@ -158,6 +158,20 @@ function Library:CreateWindow(config)
                 tabFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
             end)
         end
+        function window:CreateNapis(napisText)
+            -- Tworzenie nagłówka (napisu)
+            local headerLabel = Instance.new("TextLabel")
+            headerLabel.Size = UDim2.new(1, 0, 0, 30)  -- Wysokość nagłówka
+            headerLabel.BackgroundTransparency = 1
+            headerLabel.Text = napisText
+            headerLabel.TextColor3 = Color3.new(1, 1, 1)
+            headerLabel.Font = Enum.Font.Gotham
+            headerLabel.TextSize = 18
+            headerLabel.TextXAlignment = Enum.TextXAlignment.Left
+            headerLabel.Parent = tabContentHolder
+        
+            return headerLabel  -- Zwracamy utworzony nagłówek, jeśli chcesz z niego korzystać w przyszłości
+        end
 
         table.insert(tabs, tab)
 
