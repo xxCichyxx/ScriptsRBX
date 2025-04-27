@@ -1,24 +1,27 @@
 local Library = {}
 
 local Players = game:GetService("Players")
-local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+local PlayerGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 function Library:CreateWindow(config)
-    -- Tworzymy GUI tylko, jeśli nie istnieje w PlayerGui
     local existingGui = PlayerGui:FindFirstChild(config.Name or "MyLibraryUI")
+    local mainFrame, screenGui, firstTab, tabContentHolder
+
+    -- Tworzymy GUI tylko, jeśli nie istnieje w PlayerGui
     if existingGui then
         existingGui:Destroy() -- Upewniamy się, że nie ma starego GUI
     end
 
     -- Tworzymy nowe GUI
-    local screenGui = Instance.new("ScreenGui")
+    screenGui = Instance.new("ScreenGui")
     screenGui.Name = config.Name or "MyLibraryUI"
     screenGui.Parent = PlayerGui
 
     -- Główne okno
-    local mainFrame = Instance.new("Frame")
+    mainFrame = Instance.new("Frame")
     mainFrame.Size = UDim2.new(0, 400, 0, 350)
     mainFrame.Position = UDim2.new(0.5, -200, 0.5, -175)
     mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
@@ -66,14 +69,14 @@ function Library:CreateWindow(config)
     tabButtonLayout.Parent = tabButtonsHolder
 
     -- Holder na zawartość tabów
-    local tabContentHolder = Instance.new("Frame")
+    tabContentHolder = Instance.new("Frame")
     tabContentHolder.Size = UDim2.new(1, -20, 1, -100)
     tabContentHolder.Position = UDim2.new(0, 10, 0, 100)
     tabContentHolder.BackgroundTransparency = 1
     tabContentHolder.Parent = mainFrame
 
     local tabs = {}
-    local firstTab = nil
+    firstTab = nil
 
     local window = {}
 
@@ -191,10 +194,14 @@ function Library:CreateWindow(config)
     end)
 
     -- Funkcja monitorująca zniknięcie menu i ponowne tworzenie
-    game:GetService("RunService").Heartbeat:Connect(function()
+    local initialPosition = mainFrame.Position
+
+    RunService.Heartbeat:Connect(function()
         if not PlayerGui:FindFirstChild(config.Name or "MyLibraryUI") then
             -- Jeśli GUI zostało usunięte, przywróć je
-            Library:CreateWindow(config)
+            local newWindow = Library:CreateWindow(config)
+            -- Przypisujemy główną ramkę do nowego obiektu
+            newWindow.mainFrame.Position = initialPosition
         end
     end)
 
@@ -202,4 +209,3 @@ function Library:CreateWindow(config)
 end
 
 return Library
-
