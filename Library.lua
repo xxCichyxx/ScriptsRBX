@@ -75,6 +75,7 @@ function Library:CreateWindow(config)
 
     local window = {}
 
+    -- Funkcja do tworzenia tabów
     function window:CreateTab(tabName)
         -- Tworzenie przycisku Taba
         local tabButton = Instance.new("TextButton")
@@ -126,6 +127,7 @@ function Library:CreateWindow(config)
 
         local tab = {}
 
+        -- Funkcja do tworzenia przycisków w tabie
         function tab:CreateButton(buttonText, callback)
             local button = Instance.new("TextButton")
             button.Size = UDim2.new(1, -20, 0, 40)
@@ -158,8 +160,9 @@ function Library:CreateWindow(config)
                 tabFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
             end)
         end
+
+        -- Funkcja do tworzenia nagłówków z przestrzenią
         function window:CreateNapis(napisText)
-            -- Tworzenie nagłówka (napisu)
             local headerLabel = Instance.new("TextLabel")
             headerLabel.Size = UDim2.new(1, 0, 0, 30)  -- Wysokość nagłówka
             headerLabel.BackgroundTransparency = 1
@@ -183,11 +186,7 @@ function Library:CreateWindow(config)
         if not firstTab then
             firstTab = tabFrame
             task.defer(function()
-                -- Kliknij pierwszy tab ręcznie, bez Fire()
-                tabButton.MouseButton1Click:Connect(function()
-                    -- Tutaj możemy wywołać callback, jeśli ma być wywołany
-                    tabFrame.Visible = true
-                end)
+                tabButton:FireMouseButton1Click()
             end)
         end
 
