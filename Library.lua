@@ -131,7 +131,7 @@ function Library:CreateWindow(config)
         function tab:CreateButton(buttonText, callback)
             local button = Instance.new("TextButton")
             button.Size = UDim2.new(1, -20, 0, 40)
-            button.Position = UDim2.new(0, 10, 0, 0)
+            button.Position = UDim2.new(0, 10, 0, 0) -- Przyciski są bezpośrednio pod napisem
             button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             button.TextColor3 = Color3.fromRGB(255, 255, 255)
             button.Text = buttonText
@@ -164,7 +164,7 @@ function Library:CreateWindow(config)
         -- Funkcja do tworzenia nagłówków z minimalną przestrzenią
         function window:CreateNapis(napisText)
             local headerLabel = Instance.new("TextLabel")
-            headerLabel.Size = UDim2.new(1, 0, 0, 20)  -- Zwiększamy wysokość nagłówka, żeby zmieścił się tekst
+            headerLabel.Size = UDim2.new(1, 0, 0, 20)  -- Zwiększamy wysokość nagłówka
             headerLabel.BackgroundTransparency = 1
             headerLabel.Text = napisText
             headerLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -175,7 +175,7 @@ function Library:CreateWindow(config)
 
             -- Minimalna przestrzeń po nagłówku
             local spacer = Instance.new("Frame")
-            spacer.Size = UDim2.new(1, 0, 0, 5)  -- Zmniejszona przestrzeń
+            spacer.Size = UDim2.new(1, 0, 0, 3)  -- Zmniejszona przestrzeń (3 px)
             spacer.BackgroundTransparency = 1
             spacer.Parent = tabFrame
         end
