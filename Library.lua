@@ -161,8 +161,10 @@ function Library:CreateWindow(config)
         -- Jeśli to pierwszy tab -> automatycznie włącz
         if not firstTab then
             firstTab = tabFrame
-            -- Ustawienie widoczności pierwszego taba na true bez klikania
-            tabFrame.Visible = true
+            task.defer(function()
+                -- Automatycznie klikamy pierwszy tab
+                tabButton:FireMouseButton1Click()
+            end)
         end
 
         return tab
