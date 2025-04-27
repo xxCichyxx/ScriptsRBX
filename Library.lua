@@ -165,8 +165,11 @@ function Library:CreateWindow(config)
         if not firstTab then
             firstTab = tabFrame
             task.defer(function()
-                -- Simulacja kliknięcia pierwszego taba bez używania Fire()
-                tabButton.MouseButton1Click:Fire()
+                -- Kliknij pierwszy tab ręcznie, bez Fire()
+                tabButton.MouseButton1Click:Connect(function()
+                    -- Tutaj możemy wywołać callback, jeśli ma być wywołany
+                    tabFrame.Visible = true
+                end)
             end)
         end
 
