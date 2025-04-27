@@ -164,7 +164,7 @@ function Library:CreateWindow(config)
         -- Funkcja do tworzenia nagłówków z minimalną przestrzenią
         function window:CreateNapis(napisText)
             local headerLabel = Instance.new("TextLabel")
-            headerLabel.Size = UDim2.new(1, 0, 0, 40)  -- Zwiększamy wysokość nagłówka, żeby zmieścił się tekst
+            headerLabel.Size = UDim2.new(1, 0, 0, 20)  -- Zwiększamy wysokość nagłówka, żeby zmieścił się tekst
             headerLabel.BackgroundTransparency = 1
             headerLabel.Text = napisText
             headerLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -175,7 +175,7 @@ function Library:CreateWindow(config)
 
             -- Minimalna przestrzeń po nagłówku
             local spacer = Instance.new("Frame")
-            spacer.Size = UDim2.new(1, 0, 0, 5)  -- Zmniejszona przestrzeń
+            spacer.Size = UDim2.new(1, 0, 0, 0)  -- Zmniejszona przestrzeń
             spacer.BackgroundTransparency = 1
             spacer.Parent = tabFrame
         end
