@@ -4,15 +4,18 @@ local Players = game:GetService("Players")
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 function Library:CreateWindow(config)
+    -- Usuwanie starego GUI jeśli istnieje
     local existingGui = PlayerGui:FindFirstChild(config.Name or "MyLibraryUI")
     if existingGui then
         existingGui:Destroy()
     end
 
+    -- Tworzenie głównego GUI
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = config.Name or "MyLibraryUI"
     screenGui.Parent = PlayerGui
 
+    -- Główne okno
     local mainFrame = Instance.new("Frame")
     mainFrame.Size = UDim2.new(0, 400, 0, 350)
     mainFrame.Position = UDim2.new(0.5, -200, 0.5, -175)
@@ -25,6 +28,7 @@ function Library:CreateWindow(config)
     mainCorner.CornerRadius = UDim.new(0, 12)
     mainCorner.Parent = mainFrame
 
+    -- Pasek tytułu
     local titleBar = Instance.new("Frame")
     titleBar.Size = UDim2.new(1, 0, 0, 50)
     titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -45,6 +49,7 @@ function Library:CreateWindow(config)
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = titleBar
 
+    -- Holder na taby
     local tabButtonsHolder = Instance.new("Frame")
     tabButtonsHolder.Size = UDim2.new(1, -20, 0, 30)
     tabButtonsHolder.Position = UDim2.new(0, 10, 0, 60)
@@ -58,6 +63,7 @@ function Library:CreateWindow(config)
     tabButtonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
     tabButtonLayout.Parent = tabButtonsHolder
 
+    -- Holder na zawartość tabów
     local tabContentHolder = Instance.new("Frame")
     tabContentHolder.Size = UDim2.new(1, -20, 1, -100)
     tabContentHolder.Position = UDim2.new(0, 10, 0, 100)
@@ -69,8 +75,8 @@ function Library:CreateWindow(config)
 
     local window = {}
 
-    -- Create Tab with categories
     function window:CreateTab(tabName)
+        -- Tworzenie przycisku Taba
         local tabButton = Instance.new("TextButton")
         tabButton.Size = UDim2.new(0, 100, 1, 0)
         tabButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
@@ -84,7 +90,7 @@ function Library:CreateWindow(config)
         tabButtonCorner.CornerRadius = UDim.new(0, 8)
         tabButtonCorner.Parent = tabButton
 
-        -- Create tab content scrolling frame
+        -- Tworzenie ScrollingFrame dla zawartości tabów
         local tabFrame = Instance.new("ScrollingFrame")
         tabFrame.Size = UDim2.new(1, 0, 1, 0)
         tabFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -94,6 +100,15 @@ function Library:CreateWindow(config)
         tabFrame.Visible = false
         tabFrame.Parent = tabContentHolder
         tabFrame.ClipsDescendants = true
+
+        -- Smooth Scroll
+        local UIS = game:GetService("UserInputService")
+        tabFrame.MouseWheelForward:Connect(function()
+            tabFrame.CanvasPosition = tabFrame.CanvasPosition - Vector2.new(0, 30)
+        end)
+        tabFrame.MouseWheelBackward:Connect(function()
+            tabFrame.CanvasPosition = tabFrame.CanvasPosition + Vector2.new(0, 30)
+        end)
 
         local layout = Instance.new("UIListLayout")
         layout.Padding = UDim.new(0, 5)
@@ -111,7 +126,6 @@ function Library:CreateWindow(config)
 
         local tab = {}
 
-        -- Create Button with category
         function tab:CreateButton(buttonText, callback)
             local button = Instance.new("TextButton")
             button.Size = UDim2.new(1, -20, 0, 40)
@@ -127,7 +141,7 @@ function Library:CreateWindow(config)
             buttonCorner.CornerRadius = UDim.new(0, 8)
             buttonCorner.Parent = button
 
-            -- Hover effect
+            -- Hover efekt
             button.MouseEnter:Connect(function()
                 button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
             end)
@@ -137,7 +151,6 @@ function Library:CreateWindow(config)
 
             button.MouseButton1Click:Connect(function()
                 callback()
-                Library:CreateNotification("Action executed!", "green")
             end)
 
             -- Update Scroll Size
@@ -148,6 +161,7 @@ function Library:CreateWindow(config)
 
         table.insert(tabs, tab)
 
+        -- Jeśli to pierwszy tab -> automatycznie włącz
         if not firstTab then
             firstTab = tabFrame
             task.defer(function()
