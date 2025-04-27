@@ -104,26 +104,19 @@ function Library:CreateWindow(config)
         tabFrame.Parent = tabContentHolder
         tabFrame.ClipsDescendants = true
 
-        -- Smooth Scroll
-        local UIS = game:GetService("UserInputService")
-        tabFrame.MouseWheelForward:Connect(function()
-            tabFrame.CanvasPosition = tabFrame.CanvasPosition - Vector2.new(0, 30)
-        end)
-        tabFrame.MouseWheelBackward:Connect(function()
-            tabFrame.CanvasPosition = tabFrame.CanvasPosition + Vector2.new(0, 30)
-        end)
-
         local layout = Instance.new("UIListLayout")
         layout.Padding = UDim.new(0, 5)
         layout.SortOrder = Enum.SortOrder.LayoutOrder
         layout.Parent = tabFrame
 
         tabButton.MouseButton1Click:Connect(function()
+            -- Ukrywamy wszystkie taby
             for _, v in pairs(tabContentHolder:GetChildren()) do
                 if v:IsA("ScrollingFrame") then
                     v.Visible = false
                 end
             end
+            -- Pokazujemy kliknięty tab
             tabFrame.Visible = true
         end)
 
@@ -163,55 +156,37 @@ function Library:CreateWindow(config)
             end)
         end
 
-        -- Funkcja do tworzenia nagłówków z minimalną przestrzenią
-        function window:CreateNapis(napisText)
-            local headerLabel = Instance.new("TextLabel")
-            headerLabel.Size = UDim2.new(1, 0, 0, 20)
-            headerLabel.BackgroundTransparency = 1
-            headerLabel.Text = napisText
-            headerLabel.TextColor3 = Color3.new(1, 1, 1)
-            headerLabel.Font = Enum.Font.Gotham
-            headerLabel.TextSize = 14
-            headerLabel.TextXAlignment = Enum.TextXAlignment.Left
-            headerLabel.Parent = tabFrame
-
-            -- Minimalna przestrzeń po nagłówku
-            local spacer = Instance.new("Frame")
-            spacer.Size = UDim2.new(1, 0, 0, 3)
-            spacer.BackgroundTransparency = 1
-            spacer.Parent = tabFrame
-        end
-
         table.insert(tabs, tab)
 
         -- Jeśli to pierwszy tab -> automatycznie włącz
         if not firstTab then
             firstTab = tabFrame
-            task.defer(function()
-                tabButton:FireMouseButton1Click()
-            end)
+            -- Ustawienie widoczności pierwszego taba na true bez klikania
+            tabFrame.Visible = true
         end
 
         return tab
     end
 
-    -- Animacja uruchomienia
-    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local goal = {Size = UDim2.new(0, 400, 0, 350), Position = UDim2.new(0.5, -200, 0.5, -175)}
-    local tween = TweenService:Create(mainFrame, tweenInfo, goal)
-    tween:Play()
+    -- Funkcja do zamykania/otwierania menu
+    local isMenuOpen = true
 
-    -- Zamknięcie/otwarcie menu pod klawiszem 'N'
-    local isMenuVisible = true
+    local function toggleMenu()
+        if isMenuOpen then
+            -- Animacja ukrywania
+            TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -200, 0.5, 500)}):Play()
+        else
+            -- Animacja pokazywania
+            TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -200, 0.5, -175)}):Play()
+        end
+        isMenuOpen = not isMenuOpen
+    end
+
+    -- Nasłuchiwanie na klawisz "N" do otwierania/zamykania menu
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-
-        if input.KeyCode == Enum.KeyCode.N then
-            isMenuVisible = not isMenuVisible
-            if isMenuVisible then
-                mainFrame.Visible = true
-            else
-                mainFrame.Visible = false
+        if not gameProcessed then
+            if input.KeyCode == Enum.KeyCode.N then
+                toggleMenu()
             end
         end
     end)
