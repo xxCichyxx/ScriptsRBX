@@ -161,10 +161,8 @@ function Library:CreateWindow(config)
         -- Jeśli to pierwszy tab -> automatycznie włącz
         if not firstTab then
             firstTab = tabFrame
-            task.defer(function()
-                -- Automatycznie klikamy pierwszy tab
-                tabButton:FireMouseButton1Click()
-            end)
+            -- Wywołanie bez kliknięcia, tylko pokazujemy pierwszy tab
+            tabFrame.Visible = true
         end
 
         return tab
@@ -184,12 +182,10 @@ function Library:CreateWindow(config)
         isMenuOpen = not isMenuOpen
     end
 
-    -- Nasłuchiwanie na klawisz "N" do otwierania/zamykania menu
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if not gameProcessed then
-            if input.KeyCode == Enum.KeyCode.N then
-                toggleMenu()
-            end
+    -- Sprawdzamy czy naciśnięto klawisz 'N' do otwarcia/zamykania menu
+    UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.N then
+            toggleMenu()
         end
     end)
 
