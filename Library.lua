@@ -1,18 +1,15 @@
 local Library = {}
 
 local Players = game:GetService("Players")
-local PlayerGui = game:GetService("StarterGui")
+local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 function Library:CreateWindow(config)
-    -- Usuwanie starego GUI jeśli istnieje
     local existingGui = PlayerGui:FindFirstChild(config.Name or "MyLibraryUI")
     if existingGui then
         existingGui:Destroy()
     end
-
-    -- Tworzenie głównego GUI
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = config.Name or "MyLibraryUI"
     screenGui.Parent = PlayerGui
