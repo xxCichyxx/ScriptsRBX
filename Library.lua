@@ -109,6 +109,7 @@ function Library:CreateWindow(config)
         layout.SortOrder = Enum.SortOrder.LayoutOrder
         layout.Parent = tabFrame
 
+        -- Przełączenie widoczności tabów po kliknięciu przycisku
         tabButton.MouseButton1Click:Connect(function()
             -- Ukrywamy wszystkie taby
             for _, v in pairs(tabContentHolder:GetChildren()) do
@@ -161,7 +162,7 @@ function Library:CreateWindow(config)
         -- Jeśli to pierwszy tab -> automatycznie włącz
         if not firstTab then
             firstTab = tabFrame
-            -- Wywołanie bez kliknięcia, tylko pokazujemy pierwszy tab
+            -- Ustawiamy widoczność pierwszego taba na true
             tabFrame.Visible = true
         end
 
