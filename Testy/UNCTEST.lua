@@ -1,10 +1,3 @@
-print("\n")
-print("\n")
-print("\n")
-print("_________________________________________________________________________________________________________________________________________")
-warn("                                                 running Normal Unc test in 5 seconds")
-wait(5) 
-
 local passes, fails, undefined = 0, 0, 0
 local running = 0
 
