@@ -1,0 +1,214 @@
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local coreGui = game:GetService("CoreGui")
+local workspace = game:GetService("Workspace")
+
+-- Usunięcie poprzedniego GUI, jeśli istnieje
+if coreGui:FindFirstChild("FireTouchMenu") then
+    coreGui:FindFirstChild("FireTouchMenu"):Destroy()
+end
+
+-- Tworzenie głównego GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FireTouchMenu"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = coreGui
+
+-- Główna ramka
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 450, 0, 350)
+frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Visible = true  -- Menu jest od razu widoczne
+frame.ZIndex = 1
+frame.Parent = screenGui
+
+-- Zaokrąglenie głównej ramki
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 16)
+
+-- Górny pasek
+local topBar = Instance.new("Frame")
+topBar.Size = UDim2.new(1, 0, 0, 40)
+topBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+topBar.BorderSizePixel = 0
+topBar.Parent = frame
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 12)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -50, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.Text = "🔥 FireTouch Menu 🔥"
+title.TextColor3 = Color3.fromRGB(255, 0, 255)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = topBar
+
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 40, 0, 40)
+closeButton.Position = UDim2.new(1, -40, 0, 0)
+closeButton.Text = "X"
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 20
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+closeButton.Parent = topBar
+Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0, 12)
+
+-- ScrollFrame do listy przycisków
+local scrolling = Instance.new("ScrollingFrame")
+scrolling.Position = UDim2.new(0, 10, 0, 50)
+scrolling.Size = UDim2.new(1, -20, 1, -60)
+scrolling.BackgroundTransparency = 1
+scrolling.BorderSizePixel = 0
+scrolling.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrolling.ScrollBarThickness = 6
+scrolling.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scrolling.ScrollingDirection = Enum.ScrollingDirection.Y
+scrolling.Parent = frame
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 6)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Parent = scrolling
+
+-- Tablica z indeksami obiektów do FireTouch
+local indexes = {
+    343,169,192,200,292,171,172,173,174,175,176,184,187,188,189,
+    190,191,373,168,371,167,369,193,194,366,196,197,198,199,170,
+    201,359,275,157,156,271,270,265,264,342,258,260,347,346,345,344
+}
+
+local special1 = workspace:FindFirstChild("\236\130\172\235\157\188\236\167\128\235\138\148 \237\140\140\237\138\184")
+local gudock = workspace:FindFirstChild("Gudock")
+
+local function fireTouch(part)
+    if part and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        firetouchinterest(player.Character.HumanoidRootPart, part, 0)
+        firetouchinterest(player.Character.HumanoidRootPart, part, 1)
+    end
+end
+
+-- Tworzenie przycisków w menu
+local function createButton(name, posY, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -20, 0, 40)
+    button.Position = UDim2.new(0, 10, 0, posY)
+    button.Text = name
+    button.Font = Enum.Font.Gotham
+    button.TextSize = 16
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    button.BorderSizePixel = 0
+    button.Parent = scrolling
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 10)
+    button.AutomaticSize = Enum.AutomaticSize.None
+
+    button.MouseButton1Click:Connect(callback)
+end
+
+-- Przycisk: Dotknij wszystkie obiekty
+createButton("Dotknij wszystkie", 60, function()
+    for _, i in ipairs(indexes) do
+        local part = workspace:GetChildren()[i]
+        fireTouch(part)
+    end
+    fireTouch(special1)
+    fireTouch(gudock)
+end)
+
+-- Przycisk: Fire All na raz
+createButton("FIRE ALL!", 110, function()
+    local parts = {}
+    for _, i in ipairs(indexes) do
+        table.insert(parts, workspace:GetChildren()[i])
+    end
+    if special1 then table.insert(parts, special1) end
+    if gudock then table.insert(parts, gudock) end
+
+    for _, part in ipairs(parts) do
+        fireTouch(part)
+    end
+end)
+
+-- Przycisk: Fire na Gudock
+createButton("Fire na Gudock", 160, function()
+    if gudock then
+        fireTouch(gudock)
+    end
+end)
+
+-- Animacje otwierania/zamykania
+local function toggleMenu(show)
+    if show then
+        frame.Visible = true
+        frame.Size = UDim2.new(0, 0, 0, 0)
+        TweenService:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(0, 450, 0, 350),
+            BackgroundTransparency = 0
+        }):Play()
+    else
+        local tween = TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(0, 0, 0, 0),
+            BackgroundTransparency = 1
+        })
+        tween:Play()
+        tween.Completed:Wait()
+        frame.Visible = false
+    end
+end
+
+closeButton.MouseButton1Click:Connect(function()
+    toggleMenu(false)
+end)
+
+-- Klawisz M do otwierania i zamykania menu
+local isVisible = true
+UIS.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.M then
+        isVisible = not isVisible
+        toggleMenu(isVisible)
+    end
+end)
+
+-- Zaawansowane przeciąganie
+local dragging = false
+local dragInput, dragStart, startPos
+local smoothPos = frame.Position
+
+topBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+    end
+end)
+
+topBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if dragging and dragInput then
+        local delta = dragInput.Position - dragStart
+        smoothPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    frame.Position = frame.Position:Lerp(smoothPos, 0.2)
+end)
