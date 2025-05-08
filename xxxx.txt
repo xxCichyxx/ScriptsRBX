@@ -79,64 +79,6 @@ local indexes = {
     295,300,296,263,270,275,272,271,349,347,354,353,352,351
 }
 
-local modelParts = {
-    workspace.Model:GetChildren()[55],
-    workspace.Model.Part,
-    workspace.Model:GetChildren()[28],
-    workspace.Model:GetChildren()[2],
-    workspace.Model:GetChildren()[53],
-    workspace.Model:GetChildren()[52],
-    workspace.Model:GetChildren()[51],
-    workspace.Model:GetChildren()[50],
-    workspace.Model:GetChildren()[49],
-    workspace.Model:GetChildren()[48],
-    workspace.Model:GetChildren()[47],
-    workspace.Model:GetChildren()[46],
-    workspace.Model:GetChildren()[45],
-    workspace.Model:GetChildren()[44],
-    workspace.Model:GetChildren()[43],
-    workspace.Model:GetChildren()[42],
-    workspace.Model:GetChildren()[41],
-    workspace.Model:GetChildren()[40],
-    workspace.Model:GetChildren()[39],
-    workspace.Model:GetChildren()[38],
-    workspace.Model:GetChildren()[37],
-    workspace.Model:GetChildren()[36],
-    workspace.Model:GetChildren()[35],
-    workspace.Model:GetChildren()[34],
-    workspace.Model:GetChildren()[33],
-    workspace.Model:GetChildren()[32],
-    workspace.Model:GetChildren()[31],
-    workspace.Model:GetChildren()[30],
-    workspace.Model:GetChildren()[29],
-    workspace.Model:GetChildren()[54],
-    workspace.Model:GetChildren()[27],
-    workspace.Model:GetChildren()[26],
-    workspace.Model:GetChildren()[25],
-    workspace.Model:GetChildren()[24],
-    workspace.Model:GetChildren()[23],
-    workspace.Model:GetChildren()[22],
-    workspace.Model:GetChildren()[21],
-    workspace.Model:GetChildren()[20],
-    workspace.Model:GetChildren()[19],
-    workspace.Model:GetChildren()[18],
-    workspace.Model:GetChildren()[17],
-    workspace.Model:GetChildren()[16],
-    workspace.Model:GetChildren()[15],
-    workspace.Model:GetChildren()[14],
-    workspace.Model:GetChildren()[13],
-    workspace.Model:GetChildren()[12],
-    workspace.Model:GetChildren()[11],
-    workspace.Model:GetChildren()[10],
-    workspace.Model:GetChildren()[9],
-    workspace.Model:GetChildren()[8],
-    workspace.Model:GetChildren()[7],
-    workspace.Model:GetChildren()[6],
-    workspace.Model:GetChildren()[5],
-    workspace.Model:GetChildren()[4],
-    workspace.Model:GetChildren()[3],
-}
-
 local special1 = workspace:FindFirstChild("\236\130\172\235\157\188\236\167\128\235\138\148 \237\140\140\237\138\184")
 local gudock = workspace:FindFirstChild("Gudock")
 
@@ -168,9 +110,6 @@ createButton("Dotknij wszystkie", 60, function()
     for _, i in ipairs(indexes) do
         fireTouch(workspace:GetChildren()[i])
     end
-    for _, part in ipairs(modelParts) do
-        fireTouch(part)
-    end
     fireTouch(special1)
 end)
 
@@ -178,9 +117,6 @@ createButton("FIRE ALL!", 110, function()
     local parts = {}
     for _, i in ipairs(indexes) do
         table.insert(parts, workspace:GetChildren()[i])
-    end
-    for _, part in ipairs(modelParts) do
-        table.insert(parts, part)
     end
     if special1 then table.insert(parts, special1) end
     if gudock then table.insert(parts, gudock) end
