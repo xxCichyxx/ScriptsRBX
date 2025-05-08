@@ -18,10 +18,7 @@ local control = {F = 0, B = 0, L = 0, R = 0}
 local bodyGyro, bodyVelocity
 
 if game.PlaceId == 83312952548612 then
-    warn("Script not Support This Game")
-    return
-end
-warn("Script Tested on Executor Level 8!")
+    warn("Script Tested on Executor Level 8!")
 if coreGui:FindFirstChild("FireTouchMenu") then
     coreGui:FindFirstChild("FireTouchMenu"):Destroy()
 end
@@ -384,3 +381,4 @@ RunService.RenderStepped:Connect(function()
     end
     frame.Position = frame.Position:Lerp(smoothPos, 0.2)
 end)
+end
