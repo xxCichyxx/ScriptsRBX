@@ -172,7 +172,6 @@ createButton("Dotknij wszystkie", 60, function()
         fireTouch(part)
     end
     fireTouch(special1)
-    fireTouch(gudock)
 end)
 
 createButton("FIRE ALL!", 110, function()
