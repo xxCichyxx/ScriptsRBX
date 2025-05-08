@@ -3,8 +3,24 @@ local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local coreGui = game:GetService("CoreGui")
 local workspace = game:GetService("Workspace")
+local gudock = workspace:FindFirstChild("Gudock")
+local model = workspace:FindFirstChild("Model")
+local running = false 
+local running2 = false
+local flying = false
+local flySpeed = 150
+local control = {F = 0, B = 0, L = 0, R = 0}
+local bodyGyro, bodyVelocity
+
+if game.PlaceId == 104990399502158 then
+    warn("Skrypt nie jest przeznaczony dla tej gry.")
+    return
+end
 
 if coreGui:FindFirstChild("FireTouchMenu") then
     coreGui:FindFirstChild("FireTouchMenu"):Destroy()
@@ -26,8 +42,7 @@ frame.Visible = true
 frame.ZIndex = 1
 frame.Parent = screenGui
 
-local corner = Instance.new("UICorner", frame)
-corner.CornerRadius = UDim.new(0, 16)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 16)
 
 local topBar = Instance.new("Frame")
 topBar.Size = UDim2.new(1, 0, 0, 40)
@@ -39,7 +54,7 @@ Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 12)
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -50, 1, 0)
 title.Position = UDim2.new(0, 10, 0, 0)
-title.Text = "🔥 FireTouch Menu 🔥"
+title.Text = "🔥 Troll is a pinning tower 2 🔥"
 title.TextColor3 = Color3.fromRGB(255, 0, 255)
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBold
@@ -74,14 +89,6 @@ layout.Padding = UDim.new(0, 6)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Parent = scrolling
 
-local indexes = {
-    169,168,190,191,192,193,194,195,196,197,186,208,198,199,200,177,201,202,206,203,204,188,189,207,175,187,205,
-    295,300,296,263,270,275,272,271,349,347,352,351
-}
-
-local special1 = workspace:FindFirstChild("\236\130\172\235\157\188\236\167\128\235\138\148 \237\140\140\237\138\184")
-local gudock = workspace:FindFirstChild("Gudock")
-
 local function fireTouch(part)
     if part and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         firetouchinterest(player.Character.HumanoidRootPart, part, 0)
@@ -89,10 +96,9 @@ local function fireTouch(part)
     end
 end
 
-local function createButton(name, posY, callback)
+local function createButton(name, callback)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(1, -20, 0, 40)
-    button.Position = UDim2.new(0, 10, 0, posY)
     button.Text = name
     button.Font = Enum.Font.Gotham
     button.TextSize = 16
@@ -101,37 +107,220 @@ local function createButton(name, posY, callback)
     button.BorderSizePixel = 0
     button.Parent = scrolling
     Instance.new("UICorner", button).CornerRadius = UDim.new(0, 10)
-    button.AutomaticSize = Enum.AutomaticSize.None
 
     button.MouseButton1Click:Connect(callback)
 end
 
-createButton("Dotknij wszystkie", 60, function()
-    for _, i in ipairs(indexes) do
-        fireTouch(workspace:GetChildren()[i])
+local function createToggleButton(labelText, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -20, 0, 40)
+    button.Text = labelText
+    button.Font = Enum.Font.Gotham
+    button.TextSize = 16
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    button.BorderSizePixel = 0
+    button.Parent = scrolling
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 10)
+
+    local toggleFrame = Instance.new("Frame")
+    toggleFrame.Size = UDim2.new(0, 60, 0, 24)
+    toggleFrame.Position = UDim2.new(1, -70, 0.5, 0)
+    toggleFrame.AnchorPoint = Vector2.new(0, 0.5)
+    toggleFrame.BackgroundColor3 = Color3.fromRGB(170, 0, 0)  -- Kolor czerwony (domyślny)
+    toggleFrame.BorderSizePixel = 0
+    toggleFrame.Parent = button
+    Instance.new("UICorner", toggleFrame).CornerRadius = UDim.new(1, 0)
+
+    local circle = Instance.new("Frame")
+    circle.Size = UDim2.new(0, 20, 0, 20)
+    circle.Position = UDim2.new(0, 2, 0.5, 0)
+    circle.AnchorPoint = Vector2.new(0, 0.5)
+    circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    circle.Parent = toggleFrame
+    Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
+
+    local toggled = false
+    local function updateToggle(animated)
+        local newPos = toggled and UDim2.new(1, -22, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)
+        local newColor = toggled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(170, 0, 0)
+
+        if animated then
+            TweenService:Create(circle, TweenInfo.new(0.2), {Position = newPos}):Play()
+            TweenService:Create(toggleFrame, TweenInfo.new(0.2), {BackgroundColor3 = newColor}):Play()
+        else
+            circle.Position = newPos
+            toggleFrame.BackgroundColor3 = newColor
+        end
+
+        if callback then
+            callback(toggled)
+        end
     end
-    fireTouch(special1)
+
+    -- Obsługuje kliknięcia przycisku
+    button.MouseButton1Click:Connect(function()
+        toggled = not toggled
+        updateToggle(true)  -- Animacja toggle
+    end)
+
+    -- Inicjalizacja przycisku
+    updateToggle(false)
+
+    return function()
+        return toggled
+    end
+end
+local function startFlying()
+	character = player.Character or player.CharacterAdded:Wait()
+	humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+	bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.P = 9e4
+	bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+	bodyGyro.CFrame = humanoidRootPart.CFrame
+	bodyGyro.Parent = humanoidRootPart
+
+	bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.Velocity = Vector3.zero
+	bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+	bodyVelocity.Parent = humanoidRootPart
+
+	flying = true
+
+	RunService.RenderStepped:Connect(function()
+		if flying and bodyVelocity and bodyGyro then
+			local camera = workspace.CurrentCamera
+			local moveVec = Vector3.new(control.L - control.R, 0, control.B - control.F)
+			moveVec = camera.CFrame:VectorToWorldSpace(moveVec)
+			bodyVelocity.Velocity = moveVec * flySpeed
+			bodyGyro.CFrame = camera.CFrame
+		end
+	end)
+end
+
+local function stopFlying()
+	flying = false
+	if bodyGyro then bodyGyro:Destroy() end
+	if bodyVelocity then bodyVelocity:Destroy() end
+end
+UIS.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.W then control.F = 1 end
+	if input.KeyCode == Enum.KeyCode.S then control.B = 1 end
+	if input.KeyCode == Enum.KeyCode.A then control.R = 1 end
+	if input.KeyCode == Enum.KeyCode.D then control.L = 1 end
 end)
 
-createButton("FIRE ALL!", 110, function()
-    local parts = {}
-    for _, i in ipairs(indexes) do
-        table.insert(parts, workspace:GetChildren()[i])
+UIS.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.W then control.F = 0 end
+	if input.KeyCode == Enum.KeyCode.S then control.B = 0 end
+	if input.KeyCode == Enum.KeyCode.A then control.R = 0 end
+	if input.KeyCode == Enum.KeyCode.D then control.L = 0 end
+end)
+local function fireAllLoop()
+    while running do
+        if gudock then
+            fireTouch(gudock)
+        end
+        for _, part in ipairs(workspace:GetDescendants()) do
+            if part:IsA("BasePart") and part.Name == "사라지는 파트" then
+                fireTouch(part)
+            end
+        end
+        if model then
+            for _, part in ipairs(model:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    fireTouch(part)
+                end
+            end
+        end
+        wait(0.1) -- Czas oczekiwania między kolejnymi wywołaniami (np. 1 sekunda)
     end
-    if special1 then table.insert(parts, special1) end
-    if gudock then table.insert(parts, gudock) end
+end
+local function fireloopDock()
+    while running2 do
+        if gudock then
+            fireTouch(gudock)
+        end
+        wait(0.1)
+    end
+end
 
-    for _, part in ipairs(parts) do
-        fireTouch(part)
+-- Przyciski
+createButton("FIRE ALL", function()
+    if gudock then
+        fireTouch(gudock)
+    end
+    for _, part in ipairs(workspace:GetDescendants()) do
+        if part:IsA("BasePart") and part.Name == "사라지는 파트" then
+            fireTouch(part)
+        end
+    end
+    if model then
+        for _, part in ipairs(model:GetDescendants()) do
+            if part:IsA("BasePart") then
+                fireTouch(part)
+            end
+        end
     end
 end)
 
-createButton("Fire na Gudock", 160, function()
+createButton("Dotknij Znikające", function()
+    for _, part in ipairs(workspace:GetDescendants()) do
+        if part:IsA("BasePart") and part.Name == "사라지는 파트" then
+            fireTouch(part)
+        end
+    end
+    if model then
+        for _, part in ipairs(model:GetDescendants()) do
+            if part:IsA("BasePart") then
+                fireTouch(part)
+            end
+        end
+    end
+end)
+
+createButton("Dotknij Trolla", function()
     if gudock then
         fireTouch(gudock)
     end
 end)
 
+createButton("Dotknij Schody", function()
+    if model then
+        for _, part in ipairs(model:GetDescendants()) do
+            if part:IsA("BasePart") then
+                fireTouch(part)
+            end
+        end
+    end
+end)
+
+createToggleButton("Włącz Fire ALL", function(state)
+    if state then
+        running = true
+        fireAllLoop()  -- Rozpoczęcie pętli
+    else
+        running = false
+        print("Fire ALL został wyłączony.")
+    end
+end)
+createToggleButton("Włącz Fire Przycisk", function(state)
+    if state then
+        running2 = true
+        fireloopDock()  -- Rozpoczęcie pętli
+    else
+        running2 = false
+    end
+end)
+createToggleButton("Fly", function(state)
+	if state then
+		startFlying()
+	else
+		stopFlying()
+	end
+end)
 local function toggleMenu(show)
     if show then
         frame.Visible = true
@@ -164,6 +353,7 @@ UIS.InputBegan:Connect(function(input, gpe)
     end
 end)
 
+-- Dragging
 local dragging = false
 local dragInput, dragStart, startPos
 local smoothPos = frame.Position
@@ -194,4 +384,4 @@ RunService.RenderStepped:Connect(function()
         smoothPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
     frame.Position = frame.Position:Lerp(smoothPos, 0.2)
-end) 
+end)
