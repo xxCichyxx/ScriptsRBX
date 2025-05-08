@@ -6,18 +6,15 @@ local player = Players.LocalPlayer
 local coreGui = game:GetService("CoreGui")
 local workspace = game:GetService("Workspace")
 
--- Usunięcie poprzedniego GUI, jeśli istnieje
 if coreGui:FindFirstChild("FireTouchMenu") then
     coreGui:FindFirstChild("FireTouchMenu"):Destroy()
 end
 
--- Tworzenie głównego GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "FireTouchMenu"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = coreGui
 
--- Główna ramka
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 450, 0, 350)
 frame.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -25,15 +22,13 @@ frame.AnchorPoint = Vector2.new(0.5, 0.5)
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 frame.BorderSizePixel = 0
 frame.Active = true
-frame.Visible = true  -- Menu jest od razu widoczne
+frame.Visible = true
 frame.ZIndex = 1
 frame.Parent = screenGui
 
--- Zaokrąglenie głównej ramki
 local corner = Instance.new("UICorner", frame)
 corner.CornerRadius = UDim.new(0, 16)
 
--- Górny pasek
 local topBar = Instance.new("Frame")
 topBar.Size = UDim2.new(1, 0, 0, 40)
 topBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
@@ -63,7 +58,6 @@ closeButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 closeButton.Parent = topBar
 Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0, 12)
 
--- ScrollFrame do listy przycisków
 local scrolling = Instance.new("ScrollingFrame")
 scrolling.Position = UDim2.new(0, 10, 0, 50)
 scrolling.Size = UDim2.new(1, -20, 1, -60)
@@ -80,11 +74,67 @@ layout.Padding = UDim.new(0, 6)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Parent = scrolling
 
--- Tablica z indeksami obiektów do FireTouch
 local indexes = {
-    343,169,192,200,292,171,172,173,174,175,176,184,187,188,189,
-    190,191,373,168,371,167,193,194,366,196,197,198,199,170,
-    201,359,275,157,156,271,270,265,264,342,258,260,347,346,345,344
+    169,168,190,191,192,193,194,195,196,197,186,208,198,199,200,177,201,202,206,203,204,188,189,207,175,187,205,
+    295,300,296,263,270,275,272,271,349,347,354,353,352,351
+}
+
+local modelParts = {
+    workspace.Model:GetChildren()[55],
+    workspace.Model.Part,
+    workspace.Model:GetChildren()[28],
+    workspace.Model:GetChildren()[2],
+    workspace.Model:GetChildren()[53],
+    workspace.Model:GetChildren()[52],
+    workspace.Model:GetChildren()[51],
+    workspace.Model:GetChildren()[50],
+    workspace.Model:GetChildren()[49],
+    workspace.Model:GetChildren()[48],
+    workspace.Model:GetChildren()[47],
+    workspace.Model:GetChildren()[46],
+    workspace.Model:GetChildren()[45],
+    workspace.Model:GetChildren()[44],
+    workspace.Model:GetChildren()[43],
+    workspace.Model:GetChildren()[42],
+    workspace.Model:GetChildren()[41],
+    workspace.Model:GetChildren()[40],
+    workspace.Model:GetChildren()[39],
+    workspace.Model:GetChildren()[38],
+    workspace.Model:GetChildren()[37],
+    workspace.Model:GetChildren()[36],
+    workspace.Model:GetChildren()[35],
+    workspace.Model:GetChildren()[34],
+    workspace.Model:GetChildren()[33],
+    workspace.Model:GetChildren()[32],
+    workspace.Model:GetChildren()[31],
+    workspace.Model:GetChildren()[30],
+    workspace.Model:GetChildren()[29],
+    workspace.Model:GetChildren()[54],
+    workspace.Model:GetChildren()[27],
+    workspace.Model:GetChildren()[26],
+    workspace.Model:GetChildren()[25],
+    workspace.Model:GetChildren()[24],
+    workspace.Model:GetChildren()[23],
+    workspace.Model:GetChildren()[22],
+    workspace.Model:GetChildren()[21],
+    workspace.Model:GetChildren()[20],
+    workspace.Model:GetChildren()[19],
+    workspace.Model:GetChildren()[18],
+    workspace.Model:GetChildren()[17],
+    workspace.Model:GetChildren()[16],
+    workspace.Model:GetChildren()[15],
+    workspace.Model:GetChildren()[14],
+    workspace.Model:GetChildren()[13],
+    workspace.Model:GetChildren()[12],
+    workspace.Model:GetChildren()[11],
+    workspace.Model:GetChildren()[10],
+    workspace.Model:GetChildren()[9],
+    workspace.Model:GetChildren()[8],
+    workspace.Model:GetChildren()[7],
+    workspace.Model:GetChildren()[6],
+    workspace.Model:GetChildren()[5],
+    workspace.Model:GetChildren()[4],
+    workspace.Model:GetChildren()[3],
 }
 
 local special1 = workspace:FindFirstChild("\236\130\172\235\157\188\236\167\128\235\138\148 \237\140\140\237\138\184")
@@ -97,7 +147,6 @@ local function fireTouch(part)
     end
 end
 
--- Tworzenie przycisków w menu
 local function createButton(name, posY, callback)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(1, -20, 0, 40)
@@ -115,21 +164,24 @@ local function createButton(name, posY, callback)
     button.MouseButton1Click:Connect(callback)
 end
 
--- Przycisk: Dotknij wszystkie obiekty
 createButton("Dotknij wszystkie", 60, function()
     for _, i in ipairs(indexes) do
-        local part = workspace:GetChildren()[i]
+        fireTouch(workspace:GetChildren()[i])
+    end
+    for _, part in ipairs(modelParts) do
         fireTouch(part)
     end
     fireTouch(special1)
     fireTouch(gudock)
 end)
 
--- Przycisk: Fire All na raz
 createButton("FIRE ALL!", 110, function()
     local parts = {}
     for _, i in ipairs(indexes) do
         table.insert(parts, workspace:GetChildren()[i])
+    end
+    for _, part in ipairs(modelParts) do
+        table.insert(parts, part)
     end
     if special1 then table.insert(parts, special1) end
     if gudock then table.insert(parts, gudock) end
@@ -139,14 +191,12 @@ createButton("FIRE ALL!", 110, function()
     end
 end)
 
--- Przycisk: Fire na Gudock
 createButton("Fire na Gudock", 160, function()
     if gudock then
         fireTouch(gudock)
     end
 end)
 
--- Animacje otwierania/zamykania
 local function toggleMenu(show)
     if show then
         frame.Visible = true
@@ -170,7 +220,6 @@ closeButton.MouseButton1Click:Connect(function()
     toggleMenu(false)
 end)
 
--- Klawisz M do otwierania i zamykania menu
 local isVisible = true
 UIS.InputBegan:Connect(function(input, gpe)
     if gpe then return end
@@ -180,7 +229,6 @@ UIS.InputBegan:Connect(function(input, gpe)
     end
 end)
 
--- Zaawansowane przeciąganie
 local dragging = false
 local dragInput, dragStart, startPos
 local smoothPos = frame.Position
