@@ -17,11 +17,11 @@ local flySpeed = 150
 local control = {F = 0, B = 0, L = 0, R = 0}
 local bodyGyro, bodyVelocity
 
-if game.PlaceId == 104990399502158 then
-    warn("Skrypt nie jest przeznaczony dla tej gry.")
+if game.PlaceId == 83312952548612 then
+    warn("Script not Support This Game")
     return
 end
-
+warn("Script Tested on Executor Level 8!")
 if coreGui:FindFirstChild("FireTouchMenu") then
     coreGui:FindFirstChild("FireTouchMenu"):Destroy()
 end
@@ -300,10 +300,9 @@ end)
 createToggleButton("Włącz Fire ALL", function(state)
     if state then
         running = true
-        fireAllLoop()  -- Rozpoczęcie pętli
+        fireAllLoop()
     else
         running = false
-        print("Fire ALL został wyłączony.")
     end
 end)
 createToggleButton("Włącz Fire Przycisk", function(state)
