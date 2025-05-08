@@ -6,10 +6,12 @@ local player = Players.LocalPlayer
 local coreGui = game:GetService("CoreGui")
 local workspace = game:GetService("Workspace")
 
+-- Usunięcie poprzedniego GUI
 if coreGui:FindFirstChild("FireTouchMenu") then
     coreGui:FindFirstChild("FireTouchMenu"):Destroy()
 end
 
+-- Utworzenie GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "FireTouchMenu"
 screenGui.ResetOnSpawn = false
@@ -25,9 +27,7 @@ frame.Active = true
 frame.Visible = true
 frame.ZIndex = 1
 frame.Parent = screenGui
-
-local corner = Instance.new("UICorner", frame)
-corner.CornerRadius = UDim.new(0, 16)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 16)
 
 local topBar = Instance.new("Frame")
 topBar.Size = UDim2.new(1, 0, 0, 40)
@@ -79,64 +79,30 @@ local indexes = {
     295,300,296,263,270,275,272,271,349,347,354,353,352,351
 }
 
-local modelParts = {
-    workspace.Model:GetChildren()[55],
-    workspace.Model.Part,
-    workspace.Model:GetChildren()[28],
-    workspace.Model:GetChildren()[2],
-    workspace.Model:GetChildren()[53],
-    workspace.Model:GetChildren()[52],
-    workspace.Model:GetChildren()[51],
-    workspace.Model:GetChildren()[50],
-    workspace.Model:GetChildren()[49],
-    workspace.Model:GetChildren()[48],
-    workspace.Model:GetChildren()[47],
-    workspace.Model:GetChildren()[46],
-    workspace.Model:GetChildren()[45],
-    workspace.Model:GetChildren()[44],
-    workspace.Model:GetChildren()[43],
-    workspace.Model:GetChildren()[42],
-    workspace.Model:GetChildren()[41],
-    workspace.Model:GetChildren()[40],
-    workspace.Model:GetChildren()[39],
-    workspace.Model:GetChildren()[38],
-    workspace.Model:GetChildren()[37],
-    workspace.Model:GetChildren()[36],
-    workspace.Model:GetChildren()[35],
-    workspace.Model:GetChildren()[34],
-    workspace.Model:GetChildren()[33],
-    workspace.Model:GetChildren()[32],
-    workspace.Model:GetChildren()[31],
-    workspace.Model:GetChildren()[30],
-    workspace.Model:GetChildren()[29],
-    workspace.Model:GetChildren()[54],
-    workspace.Model:GetChildren()[27],
-    workspace.Model:GetChildren()[26],
-    workspace.Model:GetChildren()[25],
-    workspace.Model:GetChildren()[24],
-    workspace.Model:GetChildren()[23],
-    workspace.Model:GetChildren()[22],
-    workspace.Model:GetChildren()[21],
-    workspace.Model:GetChildren()[20],
-    workspace.Model:GetChildren()[19],
-    workspace.Model:GetChildren()[18],
-    workspace.Model:GetChildren()[17],
-    workspace.Model:GetChildren()[16],
-    workspace.Model:GetChildren()[15],
-    workspace.Model:GetChildren()[14],
-    workspace.Model:GetChildren()[13],
-    workspace.Model:GetChildren()[12],
-    workspace.Model:GetChildren()[11],
-    workspace.Model:GetChildren()[10],
-    workspace.Model:GetChildren()[9],
-    workspace.Model:GetChildren()[8],
-    workspace.Model:GetChildren()[7],
-    workspace.Model:GetChildren()[6],
-    workspace.Model:GetChildren()[5],
-    workspace.Model:GetChildren()[4],
-    workspace.Model:GetChildren()[3],
-}
+-- Zabezpieczone ładowanie modelParts
+local modelParts = {}
+local model = workspace:FindFirstChild("Model")
+if model then
+    local children = model:GetChildren()
+    local safeIndexes = {
+        55, 28, 2, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44,
+        43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31,
+        30, 29, 54, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18,
+        17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3
+    }
 
+    for _, idx in ipairs(safeIndexes) do
+        if children[idx] then
+            table.insert(modelParts, children[idx])
+        end
+    end
+
+    if model:FindFirstChild("Part") then
+        table.insert(modelParts, model.Part)
+    end
+end
+
+-- Bezpieczne wyszukiwanie nazw specjalnych obiektów
 local special1 = workspace:FindFirstChild("\236\130\172\235\157\188\236\167\128\235\138\148 \237\140\140\237\138\184")
 local gudock = workspace:FindFirstChild("Gudock")
 
@@ -164,20 +130,23 @@ local function createButton(name, posY, callback)
     button.MouseButton1Click:Connect(callback)
 end
 
+-- Przyciski
 createButton("Dotknij wszystkie", 60, function()
     for _, i in ipairs(indexes) do
-        fireTouch(workspace:GetChildren()[i])
+        local part = workspace:GetChildren()[i]
+        if part then fireTouch(part) end
     end
     for _, part in ipairs(modelParts) do
         fireTouch(part)
     end
-    fireTouch(special1)
+    if special1 then fireTouch(special1) end
 end)
 
 createButton("FIRE ALL!", 110, function()
     local parts = {}
     for _, i in ipairs(indexes) do
-        table.insert(parts, workspace:GetChildren()[i])
+        local part = workspace:GetChildren()[i]
+        if part then table.insert(parts, part) end
     end
     for _, part in ipairs(modelParts) do
         table.insert(parts, part)
@@ -196,6 +165,7 @@ createButton("Fire na Gudock", 160, function()
     end
 end)
 
+-- Menu toggle
 local function toggleMenu(show)
     if show then
         frame.Visible = true
@@ -228,6 +198,7 @@ UIS.InputBegan:Connect(function(input, gpe)
     end
 end)
 
+-- Dragging
 local dragging = false
 local dragInput, dragStart, startPos
 local smoothPos = frame.Position
