@@ -23,6 +23,21 @@ local boostValue = 50
 local originalSpeed = nil
 local boostConnection = nil
 
+for i = 1, 30 do
+    warn("🔥 Witaj w skrypcie Backrooms Drift! Subskrybuj twórcę na YouTube: BlockBypass 🔥")
+    print("🔥 Witaj w skrypcie Backrooms Drift! Subskrybuj twórcę na YouTube: BlockBypass 🔥")
+end
+
+task.spawn(function()
+    for i = 1, 30 do
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "Backrooms Drift",
+            Text = "Subskrybuj YouTube: BlockBypass 🔥",
+            Duration = 3
+        })
+    end
+end)
+
 if coreGui:FindFirstChild("FireTouchMenu") then
     coreGui:FindFirstChild("FireTouchMenu"):Destroy()
 end
@@ -460,7 +475,7 @@ end
 local function startBigMediumCoinTeleport()
     while autoTeleporting do
         teleportToBigOrMediumCoin()
-        local waitTime = math.random(5, 6)
+        local waitTime = math.random(1, 2)
         wait(waitTime)
     end
 end
