@@ -24,15 +24,15 @@ local originalSpeed = nil
 local boostConnection = nil
 
 for i = 1, 30 do
-    warn("🔥 Witaj w skrypcie Backrooms Drift! Subskrybuj twórcę na YouTube: BlockBypass 🔥")
-    print("🔥 Witaj w skrypcie Backrooms Drift! Subskrybuj twórcę na YouTube: BlockBypass 🔥")
+    warn("🔥 Witaj w skrypcie Backrooms Drift! Subskrybuj twórcę na YouTube: XenoScriptsPL 🔥")
+    print("🔥 Witaj w skrypcie Backrooms Drift! Subskrybuj twórcę na YouTube: XenoScriptsPL 🔥")
 end
 
 task.spawn(function()
     for i = 1, 30 do
         game.StarterGui:SetCore("SendNotification", {
             Title = "Backrooms Drift",
-            Text = "Subskrybuj YouTube: BlockBypass 🔥",
+            Text = "Subskrybuj YouTube: XenoScriptsPL 🔥",
             Duration = 3
         })
     end
