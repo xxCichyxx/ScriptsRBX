@@ -475,7 +475,7 @@ end
 local function startBigMediumCoinTeleport()
     while autoTeleporting do
         teleportToBigOrMediumCoin()
-        local waitTime = math.random(1, 2)
+        local waitTime = math.random(3, 5)
         wait(waitTime)
     end
 end
