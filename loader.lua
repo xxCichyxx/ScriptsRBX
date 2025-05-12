@@ -1,6 +1,7 @@
 local PlaceIds = {
     ["Backrooms Drift"] = {id = 138365924124161, url = "https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/BackroomDrift.lua"},
-    ["Troll is a pinning tower 2"] = {id = 83312952548612, url = "https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/xxxx.txt"}
+    ["Troll is a pinning tower 2"] = {id = 83312952548612, url = "https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/xxxx.txt"},
+    ["Drift Carts 🛒"] = {id = 119833305457981, url = "https://raw.githubusercontent.com/xxCichyxx/ScriptsRBX/refs/heads/main/xd.lua"}
 }
 
 local found = false
